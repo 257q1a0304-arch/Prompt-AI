@@ -128,12 +128,27 @@ const copyStatus = document.getElementById("copyStatus");
 
 const detectCategory = (text) => {
 const t = text.toLowerCase();
+
+// WEBSITE
 if (t.match(/website|landing|dashboard|saas|ui|ux/)) return "Website";
+
+// LOGO
 if (t.match(/logo|brand|identity|icon/)) return "Logo";
+
+// TSHIRT
 if (t.match(/t-shirt|tshirt|tee|merch/)) return "T-shirt";
+
+// CODE
 if (t.match(/code|api|script|bug|javascript|python/)) return "Code";
+
+// BUSINESS
 if (t.match(/marketing|growth|strategy|sales/)) return "Business";
-if (t.match(/image|art|poster|illustration|scene/)) return "Image";
+
+// IMAGE / VISUAL DETECTION (UPGRADED)
+if (t.match(/city|character|landscape|portrait|robot|future|futuristic|night|forest|space|cyberpunk|fantasy|realistic|anime|cinematic/))
+return "Image";
+
+// DEFAULT
 return "Writing";
 };
 const enhancePrompt = (text, category) => {
