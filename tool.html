@@ -51,6 +51,23 @@ html { scroll-behavior: smooth; }
 
 <div class="flex pt-20">
 
+<!-- SIDEBAR -->
+<aside class="hidden md:block w-64 border-r border-white/10 bg-white/5 backdrop-blur-xl min-h-screen p-6">
+  <h2 class="text-sm uppercase tracking-wider text-gray-400 mb-4">Chats</h2>
+  <div class="space-y-3 text-sm">
+    <div class="p-3 rounded-lg bg-slate-800/60 hover:bg-slate-700 cursor-pointer transition">
+      Website Prompt
+    </div>
+    <div class="p-3 rounded-lg bg-slate-800/40 hover:bg-slate-700 cursor-pointer transition">
+      Image Concept
+    </div>
+    <div class="p-3 rounded-lg bg-slate-800/40 hover:bg-slate-700 cursor-pointer transition">
+      Marketing Plan
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN TOOL -->
 <section class="flex-1 max-w-4xl mx-auto px-6 py-20 space-y-6">
 
 <h3 class="text-2xl font-bold">Generate Optimized Prompt</h3>
@@ -78,7 +95,7 @@ Generate Prompt
 
 <div id="resultBox" class="bg-slate-800 rounded-2xl p-6 shadow-xl hidden">
 <h3 class="text-xl font-bold mb-4">Result</h3>
-<div id="resultContent" class="text-gray-300 mb-4"></div>
+<div id="resultContent" class="text-gray-300"></div>
 </div>
 
 </section>
@@ -115,7 +132,7 @@ return `${text}\nClean architecture, scalable, well documented`;
 return `${text}\nMake it detailed and structured`;
 };
 
-/* SCORE SYSTEM (FIXED GLOBAL) */
+/* SCORE */
 const evaluatePrompt = (text) => {
 
 let score = 0;
@@ -136,7 +153,7 @@ let tip = score >= 8 ? "Excellent prompt structure."
 return { score, clarity, detail, tip };
 };
 
-/* PROMPT BUILDER */
+/* BUILDER */
 const buildPrompt = (text, ai, category) => {
 
 if (ai === "Midjourney")
