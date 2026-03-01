@@ -57,7 +57,7 @@ html { scroll-behavior: smooth; }
   <div id="chatList" class="space-y-3 text-sm"></div>
 </aside>
 
-<!-- MAIN TOOL -->
+<!-- MAIN -->
 <section class="flex-1 max-w-4xl mx-auto px-6 py-20 space-y-6">
 
 <h3 class="text-2xl font-bold">Generate Optimized Prompt</h3>
@@ -116,22 +116,26 @@ let lastInput = "";
 let lastAI = "";
 let lastCategory = "";
 
-/* MEMORY SYSTEM */
-let chatHistory = JSON.parse(localStorage.getItem("promptAIChats")) || [];
+/* SAFE MEMORY LOAD */
+let chatHistory = [];
+try {
+  const stored = localStorage.getItem("promptAIChats");
+  chatHistory = stored ? JSON.parse(stored) : [];
+} catch (err) {
+  chatHistory = [];
+}
 
+/* RENDER SIDEBAR */
 const renderSidebar = () => {
   chatList.innerHTML = "";
-
-  chatHistory.forEach((chat, index) => {
+  chatHistory.forEach((chat) => {
     const div = document.createElement("div");
     div.className = "p-3 rounded-lg bg-slate-800/40 hover:bg-slate-700 cursor-pointer transition text-sm";
     div.innerText = chat.title;
-
     div.onclick = () => {
       resultBox.classList.remove("hidden");
       resultContent.innerHTML = chat.content;
     };
-
     chatList.appendChild(div);
   });
 };
@@ -232,7 +236,6 @@ variationBox.innerHTML = "";
 
 resultContent.innerHTML =
 `<h4 class='text-lg font-semibold mb-2'>${category} Prompt</h4>
-
 <div class="mb-4 p-4 rounded-lg bg-slate-900 border border-white/10">
 <p class="text-sm font-semibold text-purple-400">
 Prompt Quality: ${analysis.score} / 10
@@ -244,7 +247,6 @@ Clarity: ${analysis.clarity} | Detail: ${analysis.detail}
 Tip: ${analysis.tip}
 </p>
 </div>
-
 <pre class='bg-slate-900 p-4 rounded-lg whitespace-pre-wrap text-sm'>${output}</pre>`;
 
 chatHistory.unshift({
@@ -252,7 +254,10 @@ chatHistory.unshift({
   content: resultContent.innerHTML
 });
 
-localStorage.setItem("promptAIChats", JSON.stringify(chatHistory));
+try {
+  localStorage.setItem("promptAIChats", JSON.stringify(chatHistory));
+} catch (err) {}
+
 renderSidebar();
 
 lastInput = finalInput;
@@ -260,7 +265,7 @@ lastAI = aiSelect.value;
 lastCategory = category;
 });
 
-/* VARIATION CLICK */
+/* VARIATION */
 variationBtn.addEventListener("click", () => {
 const vars = buildVariations(lastInput, lastAI, lastCategory);
 variationBox.classList.remove("hidden");
