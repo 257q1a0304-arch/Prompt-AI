@@ -21,10 +21,20 @@ html { scroll-behavior: smooth; }
   50% { transform: translateY(-18px); }
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.4s ease-out;
+}
+
 .blur-blob {
   filter: blur(80px);
   opacity: 0.4;
   animation: floaty 12s ease-in-out infinite;
+  box-shadow: 0 0 120px rgba(99,102,241,0.4);
 }
 </style>
 </head>
@@ -52,15 +62,17 @@ html { scroll-behavior: smooth; }
 <div class="flex pt-20">
 
 <!-- SIDEBAR -->
-<aside class="hidden md:block w-64 border-r border-white/10 bg-white/5 backdrop-blur-xl min-h-screen p-6">
+<aside class="hidden md:block w-64 border-r border-white/10 bg-white/5 backdrop-blur-xl min-h-screen p-6 shadow-2xl">
   <h2 class="text-sm uppercase tracking-wider text-gray-400 mb-4">Chats</h2>
   <div id="chatList" class="space-y-3 text-sm"></div>
 </aside>
 
 <!-- MAIN -->
-<section class="flex-1 max-w-4xl mx-auto px-6 py-20 space-y-6">
+<section class="flex-1 max-w-5xl mx-auto px-8 py-24 space-y-8">
 
-<h3 class="text-2xl font-bold">Generate Optimized Prompt</h3>
+<h3 class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+Generate Optimized Prompt
+</h3>
 
 <select id="aiSelector" class="w-full p-3 rounded-lg bg-slate-800 border border-gray-600">
 <option value="GPT">GPT</option>
@@ -70,7 +82,7 @@ html { scroll-behavior: smooth; }
 </select>
 
 <textarea id="promptInput"
-class="w-full h-32 p-6 rounded-2xl bg-slate-800 border border-gray-600 shadow-xl"
+class="w-full h-36 p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition"
 placeholder="Describe what you want to generate..."></textarea>
 
 <label class="flex items-center gap-3 text-sm text-gray-300">
@@ -79,11 +91,11 @@ Enable Advanced Prompt Intelligence
 </label>
 
 <button id="generateBtn"
-class="bg-gradient-to-r from-blue-500 to-purple-600 py-2 px-6 rounded-lg hover:scale-105 transition">
+class="bg-gradient-to-r from-blue-500 to-purple-600 py-3 px-8 rounded-xl shadow-lg hover:scale-105 hover:shadow-purple-500/30 transition-all duration-300">
 Generate Prompt
 </button>
 
-<div id="resultBox" class="bg-slate-800 rounded-2xl p-6 shadow-xl hidden">
+<div id="resultBox" class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl hidden animate-fadeIn">
 <h3 class="text-xl font-bold mb-4">Result</h3>
 <div id="resultContent" class="text-gray-300 mb-4"></div>
 
@@ -125,7 +137,6 @@ try {
   chatHistory = [];
 }
 
-/* SAVE HELPER */
 const saveChats = () => {
   try {
     localStorage.setItem("promptAIChats", JSON.stringify(chatHistory));
@@ -133,16 +144,14 @@ const saveChats = () => {
   renderSidebar();
 };
 
-/* RENDER SIDEBAR WITH PIN + DELETE */
+/* SIDEBAR RENDER */
 const renderSidebar = () => {
   chatList.innerHTML = "";
+  const sorted = [...chatHistory].sort((a,b) => (b.pinned||0)-(a.pinned||0));
 
-  const sortedChats = [...chatHistory].sort((a,b) => (b.pinned || 0) - (a.pinned || 0));
-
-  sortedChats.forEach((chat) => {
-
+  sorted.forEach((chat) => {
     const wrapper = document.createElement("div");
-    wrapper.className = "flex items-center justify-between p-3 rounded-lg bg-slate-800/40 hover:bg-slate-700 transition";
+    wrapper.className = "flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all duration-200";
 
     const title = document.createElement("span");
     title.className = "cursor-pointer text-sm";
@@ -177,7 +186,6 @@ const renderSidebar = () => {
 
     wrapper.appendChild(title);
     wrapper.appendChild(actions);
-
     chatList.appendChild(wrapper);
   });
 };
