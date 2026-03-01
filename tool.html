@@ -163,6 +163,42 @@ return `${text}\nMake it detailed and professional`;
 /* MAIN PROMPT BUILDER */
 const buildPrompt = (text, ai, category) => {
 
+  const evaluatePrompt = (text) => {
+
+let score = 0;
+
+const wordCount = text.split(/\s+/).length;
+if (wordCount > 20) score += 2;
+
+if (text.match(/cinematic|lighting|ultra|detailed|professional|realistic|8k|composition/i))
+score += 2;
+
+if (text.match(/architecture|structure|strategy|implementation|scalable|responsive/i))
+score += 2;
+
+if (text.match(/role|task|deliver|format|objective/i))
+score += 2;
+
+if (text.match(/high|clear|specific|focused|conversion|quality/i))
+score += 2;
+
+let clarity = wordCount > 25 ? "High" : "Medium";
+let detail = score >= 6 ? "Strong" : "Basic";
+
+let tip = "Consider adding specific constraints or style direction.";
+
+if (score >= 8) tip = "Excellent prompt structure.";
+if (score <= 4) tip = "Add more detail, constraints, and context.";
+
+return {
+score,
+clarity,
+detail,
+tip
+};
+
+};
+  
 if (ai === "Midjourney")
 return `${text}, cinematic lighting, ultra detailed, 4k`;
 
