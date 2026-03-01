@@ -125,18 +125,60 @@ try {
   chatHistory = [];
 }
 
-/* RENDER SIDEBAR */
+/* SAVE HELPER */
+const saveChats = () => {
+  try {
+    localStorage.setItem("promptAIChats", JSON.stringify(chatHistory));
+  } catch (err) {}
+  renderSidebar();
+};
+
+/* RENDER SIDEBAR WITH PIN + DELETE */
 const renderSidebar = () => {
   chatList.innerHTML = "";
-  chatHistory.forEach((chat) => {
-    const div = document.createElement("div");
-    div.className = "p-3 rounded-lg bg-slate-800/40 hover:bg-slate-700 cursor-pointer transition text-sm";
-    div.innerText = chat.title;
-    div.onclick = () => {
+
+  const sortedChats = [...chatHistory].sort((a,b) => (b.pinned || 0) - (a.pinned || 0));
+
+  sortedChats.forEach((chat) => {
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "flex items-center justify-between p-3 rounded-lg bg-slate-800/40 hover:bg-slate-700 transition";
+
+    const title = document.createElement("span");
+    title.className = "cursor-pointer text-sm";
+    title.innerText = chat.pinned ? "📌 " + chat.title : chat.title;
+
+    title.onclick = () => {
       resultBox.classList.remove("hidden");
       resultContent.innerHTML = chat.content;
     };
-    chatList.appendChild(div);
+
+    const actions = document.createElement("div");
+    actions.className = "flex gap-2 text-xs";
+
+    const pinBtn = document.createElement("button");
+    pinBtn.innerText = "📌";
+    pinBtn.onclick = (e) => {
+      e.stopPropagation();
+      chat.pinned = !chat.pinned;
+      saveChats();
+    };
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.innerText = "🗑";
+    deleteBtn.onclick = (e) => {
+      e.stopPropagation();
+      chatHistory = chatHistory.filter(c => c !== chat);
+      saveChats();
+    };
+
+    actions.appendChild(pinBtn);
+    actions.appendChild(deleteBtn);
+
+    wrapper.appendChild(title);
+    wrapper.appendChild(actions);
+
+    chatList.appendChild(wrapper);
   });
 };
 
@@ -251,14 +293,11 @@ Tip: ${analysis.tip}
 
 chatHistory.unshift({
   title: category + " - " + new Date().toLocaleTimeString(),
-  content: resultContent.innerHTML
+  content: resultContent.innerHTML,
+  pinned: false
 });
 
-try {
-  localStorage.setItem("promptAIChats", JSON.stringify(chatHistory));
-} catch (err) {}
-
-renderSidebar();
+saveChats();
 
 lastInput = finalInput;
 lastAI = aiSelect.value;
