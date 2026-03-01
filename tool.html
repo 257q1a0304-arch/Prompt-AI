@@ -250,6 +250,7 @@ let category = detectCategory(text);
 let finalInput = advancedToggle.checked ? enhancePrompt(text, category) : text;
 
 const output = buildPrompt(finalInput, aiSelect.value, category);
+  const analysis = evaluatePrompt(output);
 
 resultBox.classList.remove("hidden");
 variationBtn.classList.remove("hidden");
@@ -258,6 +259,19 @@ variationBox.innerHTML = "";
 
 resultContent.innerHTML =
 `<h4 class='text-lg font-semibold mb-2'>${category} Prompt</h4>
+
+<div class="mb-4 p-4 rounded-lg bg-slate-900 border border-white/10">
+<p class="text-sm font-semibold text-purple-400">
+Prompt Quality: ${analysis.score} / 10
+</p>
+<p class="text-xs text-gray-400 mt-1">
+Clarity: ${analysis.clarity} | Detail Level: ${analysis.detail}
+</p>
+<p class="text-xs text-gray-500 mt-2">
+Tip: ${analysis.tip}
+</p>
+</div>
+
 <pre class='bg-slate-900 p-4 rounded-lg whitespace-pre-wrap text-sm'>${output}</pre>`;
 
 lastInput = finalInput;
