@@ -4,33 +4,50 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PromptAI</title>
+
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
 body {
   background: radial-gradient(circle at top left, #1e293b, #0f172a 60%);
 }
+
 @keyframes floaty {
   0%,100% { transform: translateY(0px); }
   50% { transform: translateY(-18px); }
 }
+
 .blur-blob {
   filter: blur(70px);
   opacity: 0.5;
   animation: floaty 10s ease-in-out infinite;
 }
+
 @keyframes fadeIn {
   from { opacity:0; transform: translateY(8px);}
   to { opacity:1; transform: translateY(0);}
 }
+
 .fade-in { animation: fadeIn 0.4s ease-out; }
 </style>
 </head>
 
 <body class="text-white min-h-screen">
 
+<!-- NAVBAR -->
+<nav class="fixed top-0 left-0 w-full backdrop-blur-md bg-slate-900/60 border-b border-slate-800 z-50">
+  <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+    <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+      PromptAI
+    </h1>
+    <span class="text-xs text-gray-400 tracking-wide">
+      Intelligent Prompt Engine
+    </span>
+  </div>
+</nav>
+
 <!-- HERO -->
-<header class="relative flex items-center justify-center min-h-screen overflow-hidden">
+<header class="relative flex items-center justify-center min-h-screen overflow-hidden pt-24">
 <div class="absolute inset-0">
 <div class="blur-blob absolute top-10 left-10 w-72 h-72 bg-blue-500 rounded-full"></div>
 <div class="blur-blob absolute bottom-10 right-10 w-80 h-80 bg-purple-600 rounded-full" style="animation-delay:2s;"></div>
@@ -143,7 +160,7 @@ const ai = aiSelect.value;
 const file = imageUpload.files[0];
 
 if (!text && !file) {
-resultContent.innerHTML = "<p class='text-red-400'>Enter text or upload an image.</p>";
+resultContent.innerHTML = "<p class='text-red-400'>Enter text or upload a file.</p>";
 resultBox.classList.remove("hidden");
 return;
 }
@@ -163,7 +180,23 @@ if (text) {
 combinedInput += `User Objective:\n${text}`;
 }
 
-const category = detectCategory(text || file?.name || "");
+/* FILE PRIORITY CATEGORY DETECTION */
+let category;
+
+if (file) {
+  if (file.name.endsWith(".html")) {
+    category = "Website";
+  } else if (file.name.endsWith(".js")) {
+    category = "Code";
+  } else if (file.type.startsWith("image/")) {
+    category = "Image";
+  } else {
+    category = detectCategory(text || "");
+  }
+} else {
+  category = detectCategory(text || "");
+}
+
 const output = buildPrompt(combinedInput, ai, category);
 
 resultContent.innerHTML = `
@@ -189,41 +222,18 @@ const hasTailwind = content.includes("tailwind");
 const hasHeader = content.includes("<header");
 
 analysis += `HTML Structure Analysis:\n`;
-
-analysis += `- Sections Detected: ${sectionCount}\n`;
-if (sectionCount < 3) {
-analysis += `  → Limited content depth. Consider adding feature, testimonial or CTA sections.\n`;
-} else {
-analysis += `  → Good structural segmentation.\n`;
-}
-
-analysis += `- Script Tags: ${scriptCount}\n`;
-if (scriptCount > 2) {
-analysis += `  → Multiple scripts detected. Review performance and defer loading if needed.\n`;
-}
-
+analysis += `- Sections: ${sectionCount}\n`;
+analysis += `- Scripts: ${scriptCount}\n`;
 analysis += `- Header Present: ${hasHeader}\n`;
-if (!hasHeader) {
-analysis += `  → Consider adding a hero/header section for strong first impression.\n`;
-}
+analysis += `- Tailwind Used: ${hasTailwind}\n`;
 
-analysis += `- Tailwind CSS Used: ${hasTailwind}\n`;
-if (hasTailwind) {
-analysis += `  → Maintain utility-first consistency and avoid inline styling.\n`;
-} else {
-analysis += `  → Consider using a structured styling system for scalability.\n`;
-}
 } else if (file.name.endsWith(".js")) {
 
 const functionCount = (content.match(/function/g) || []).length;
-analysis += `JavaScript File Detected\n`;
-analysis += `- Functions: ${functionCount}\n`;
+analysis += `JavaScript File\n- Functions: ${functionCount}\n`;
 
 } else {
-
-analysis += `File Type: ${file.name}\n`;
-analysis += `Basic file reference used.\n`;
-
+analysis += `File: ${file.name}\n`;
 }
 
 processPrompt(analysis);
@@ -232,9 +242,7 @@ processPrompt(analysis);
 reader.readAsText(file);
 
 } else {
-
 processPrompt();
-
 }
 
 });
