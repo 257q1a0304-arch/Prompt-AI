@@ -95,7 +95,16 @@ Generate Prompt
 
 <div id="resultBox" class="bg-slate-800 rounded-2xl p-6 shadow-xl hidden">
 <h3 class="text-xl font-bold mb-4">Result</h3>
-<div id="resultContent" class="text-gray-300"></div>
+
+<div id="resultContent" class="text-gray-300 mb-4"></div>
+
+<button id="variationBtn"
+class="bg-purple-700 hover:bg-purple-600 px-4 py-2 rounded-lg text-sm transition hidden">
+Generate Variations
+</button>
+
+<div id="variationBox" class="mt-6 space-y-4 hidden"></div>
+
 </div>
 
 </section>
@@ -110,6 +119,12 @@ const advancedToggle = document.getElementById("advancedMode");
 const button = document.getElementById("generateBtn");
 const resultBox = document.getElementById("resultBox");
 const resultContent = document.getElementById("resultContent");
+const variationBtn = document.getElementById("variationBtn");
+const variationBox = document.getElementById("variationBox");
+
+let lastInput = "";
+let lastAI = "";
+let lastCategory = "";
 
 /* CATEGORY */
 const detectCategory = (text) => {
@@ -134,10 +149,8 @@ return `${text}\nMake it detailed and structured`;
 
 /* SCORE */
 const evaluatePrompt = (text) => {
-
 let score = 0;
 const wordCount = text.split(/\s+/).length;
-
 if (wordCount > 20) score += 2;
 if (text.match(/cinematic|lighting|ultra|detailed|professional|8k/i)) score += 2;
 if (text.match(/architecture|structure|scalable|responsive/i)) score += 2;
@@ -174,7 +187,30 @@ return `ROLE: Senior Engineer\nTASK:\n${text}`;
 return `ROLE: Creative Expert\nCONTEXT:\n${text}`;
 };
 
-/* BUTTON */
+/* VARIATIONS */
+const buildVariations = (text, ai, category) => {
+
+if (ai === "Midjourney") {
+return [
+`${text}, cyberpunk neon reflections, rain soaked streets`,
+`${text}, minimalist architectural render, soft ambient light`
+];
+}
+
+if (category === "Image") {
+return [
+`${text}, dramatic sunset lighting, cinematic color grading`,
+`${text}, ultra realistic render, volumetric lighting`
+];
+}
+
+return [
+`Alternative framing:\n${text}`,
+`Expanded professional version:\n${text}\nAdd more depth and clarity.`
+];
+};
+
+/* GENERATE */
 button.addEventListener("click", () => {
 
 const text = input.value.trim();
@@ -187,6 +223,9 @@ const output = buildPrompt(finalInput, aiSelect.value, category);
 const analysis = evaluatePrompt(output);
 
 resultBox.classList.remove("hidden");
+variationBtn.classList.remove("hidden");
+variationBox.classList.add("hidden");
+variationBox.innerHTML = "";
 
 resultContent.innerHTML =
 `<h4 class='text-lg font-semibold mb-2'>${category} Prompt</h4>
@@ -204,6 +243,26 @@ Tip: ${analysis.tip}
 </div>
 
 <pre class='bg-slate-900 p-4 rounded-lg whitespace-pre-wrap text-sm'>${output}</pre>`;
+
+lastInput = finalInput;
+lastAI = aiSelect.value;
+lastCategory = category;
+});
+
+/* VARIATION CLICK */
+variationBtn.addEventListener("click", () => {
+
+const vars = buildVariations(lastInput, lastAI, lastCategory);
+
+variationBox.classList.remove("hidden");
+
+variationBox.innerHTML = vars.map((v,i) =>
+`<div class='bg-slate-900 p-4 rounded-lg'>
+<h5 class='font-semibold mb-2'>Variation ${i+1}</h5>
+<pre class='whitespace-pre-wrap text-sm'>${v}</pre>
+</div>`
+).join("");
+
 });
 
 });
