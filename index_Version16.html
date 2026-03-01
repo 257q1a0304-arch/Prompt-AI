@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PromptAI</title>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+html { scroll-behavior: smooth; }
+
+@keyframes floaty {
+0%,100% { transform: translateY(0px); }
+50% { transform: translateY(-18px); }
+}
+
+.blur-blob {
+filter: blur(70px);
+opacity: 0.6;
+animation: floaty 10s ease-in-out infinite;
+}
+
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(8px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in { animation: fadeIn 0.6s ease-out; }
+</style>
+</head>
+
+<body class="bg-slate-900 text-white min-h-screen">
+
+<nav class="p-6">
+<div class="container mx-auto">
+<h1 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+PromptAI
+</h1>
+</div>
+</nav>
+
+<header class="relative flex items-center justify-center min-h-screen overflow-hidden">
+<div class="absolute inset-0">
+<div class="blur-blob absolute top-10 left-10 w-72 h-72 bg-blue-500 rounded-full"></div>
+<div class="blur-blob absolute bottom-10 right-10 w-80 h-80 bg-purple-600 rounded-full" style="animation-delay:2s;"></div>
+</div>
+
+<div class="relative text-center px-6">
+<h2 class="text-5xl font-extrabold mb-6">Turn Ideas Into Intelligent Prompts.</h2>
+<p class="text-xl mb-8">AI-Optimized Structured Prompt Generator.</p>
+<a href="#tool" class="bg-gradient-to-r from-blue-500 to-purple-600 py-2 px-6 rounded-lg hover:scale-105 transition">
+Start
+</a>
+</div>
+</header>
+
+<main>
+<div class="max-w-4xl mx-auto px-6 py-20 space-y-12">
+
+<section id="tool" class="space-y-6">
+
+<h3 class="text-2xl font-bold">Generate Optimized Prompt</h3>
+
+<label class="block text-sm font-semibold">Select Target AI</label>
+<select id="aiSelector" class="w-full p-3 rounded-lg bg-slate-800 border border-gray-600">
+<option value="GPT">GPT</option>
+<option value="Claude">Claude</option>
+<option value="Midjourney">Midjourney</option>
+<option value="Stable Diffusion">Stable Diffusion</option>
+</select>
+
+<textarea id="promptInput"
+class="w-full h-32 p-6 rounded-2xl bg-slate-800 border border-gray-600 shadow-xl"
+placeholder="Describe what you want to generate..."></textarea>
+
+<button id="analyzeButton"
+class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 py-2 px-6 rounded-lg hover:scale-105 transition">
+
+<span id="loadingSpinner"
+class="hidden w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+
+Generate Prompt
+</button>
+
+</section>
+
+<section id="result" class="bg-slate-800 rounded-2xl p-6 shadow-xl">
+<h3 class="text-xl font-bold">Result</h3>
+<div id="resultContent" class="mt-4 text-gray-200">
+<p>Your optimized prompt will appear here.</p>
+</div>
+</section>
+
+</div>
+</main>
+
+<script>
+const promptInput = document.getElementById('promptInput');
+const analyzeButton = document.getElementById('analyzeButton');
+const loadingSpinner = document.getElementById('loadingSpinner');
+const resultContent = document.getElementById('resultContent');
+const resultSection = document.getElementById('result');
+const aiSelector = document.getElementById('aiSelector');
+
+const setLoading = (state) => {
+if (state) {
+loadingSpinner.classList.remove('hidden');
+analyzeButton.disabled = true;
+} else {
+loadingSpinner.classList.add('hidden');
+analyzeButton.disabled = false;
+}
+};
+
+const generatePromptForAI = (text, targetAI) => {
+if (targetAI === "GPT") {
+return {
+title: "GPT Structured Prompt",
+content: `
+Role:
+Act as an expert AI assistant.
+
+Objective:
+${text}
+
+Constraints:
+- Be clear and concise
+- Stay on task
+- Avoid vague language
+
+Output Format:
+Use sections and bullet points where helpful.
+`
+};
+}
+
+if (targetAI === "Claude") {
+return {
+title: "Claude Structured Instruction",
+content: `
+You are a thoughtful, detail-oriented assistant.
+
+Task:
+${text}
+
+Instructions:
+- Provide a structured response
+- Include reasoning and clear formatting
+- Keep tone professional
+`
+};
+}
+
+if (targetAI === "Midjourney") {
+return {
+title: "Midjourney Visual Prompt",
+content: `
+Scene:
+${text}
+
+Style:
+Cinematic, high-detail, artstation quality
+
+Lighting:
+Soft dramatic lighting
+
+Camera:
+Wide-angle, depth of field
+
+Final Prompt:
+${text}, cinematic lighting, ultra detailed, 4k, masterpiece
+`
+};
+}
+
+if (targetAI === "Stable Diffusion") {
+return {
+title: "Stable Diffusion Prompt",
+content: `
+Positive Prompt:
+${text}, highly detailed, realistic, sharp focus
+
+Negative Prompt:
+blurry, low quality, distorted, extra limbs
+`
+};
+}
+
+return { title: "Prompt", content: text };
+};
+
+const renderPrompt = (data) => {
+resultContent.innerHTML = `
+<div class="space-y-3">
+<h4 class="text-lg font-semibold">${data.title}</h4>
+<pre class="bg-slate-900 p-4 rounded-lg whitespace-pre-wrap text-sm">${data.content}</pre>
+</div>
+`;
+resultSection.classList.add('fade-in');
+};
+
+const analyzeInput = () => {
+const text = promptInput.value.trim();
+const selectedAI = aiSelector.value;
+
+if (!text) {
+resultContent.innerHTML = "<p class='text-red-400'>Please enter a description.</p>";
+return;
+}
+
+setLoading(true);
+resultContent.innerHTML = "<p class='text-gray-400'>Generating optimized prompt...</p>";
+
+setTimeout(() => {
+const result = generatePromptForAI(text, selectedAI);
+renderPrompt(result);
+setLoading(false);
+}, 1200);
+};
+
+analyzeButton.addEventListener("click", analyzeInput);
+</script>
+
+</body>
+</html>
