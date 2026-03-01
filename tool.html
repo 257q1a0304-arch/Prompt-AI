@@ -31,7 +31,7 @@ html { scroll-behavior: smooth; }
 
 <body class="min-h-screen text-white">
 
-<!-- BACKGROUND BLOBS -->
+<!-- BACKGROUND -->
 <div class="fixed inset-0 -z-10 overflow-hidden">
   <div class="blur-blob absolute top-10 left-10 w-72 h-72 bg-blue-500 rounded-full"></div>
   <div class="blur-blob absolute bottom-10 right-10 w-80 h-80 bg-purple-600 rounded-full" style="animation-delay:2s;"></div>
@@ -54,17 +54,7 @@ html { scroll-behavior: smooth; }
 <!-- SIDEBAR -->
 <aside class="hidden md:block w-64 border-r border-white/10 bg-white/5 backdrop-blur-xl min-h-screen p-6">
   <h2 class="text-sm uppercase tracking-wider text-gray-400 mb-4">Chats</h2>
-  <div class="space-y-3 text-sm">
-    <div class="p-3 rounded-lg bg-slate-800/60 hover:bg-slate-700 cursor-pointer transition">
-      Website Prompt
-    </div>
-    <div class="p-3 rounded-lg bg-slate-800/40 hover:bg-slate-700 cursor-pointer transition">
-      Image Concept
-    </div>
-    <div class="p-3 rounded-lg bg-slate-800/40 hover:bg-slate-700 cursor-pointer transition">
-      Marketing Plan
-    </div>
-  </div>
+  <div id="chatList" class="space-y-3 text-sm"></div>
 </aside>
 
 <!-- MAIN TOOL -->
@@ -95,7 +85,6 @@ Generate Prompt
 
 <div id="resultBox" class="bg-slate-800 rounded-2xl p-6 shadow-xl hidden">
 <h3 class="text-xl font-bold mb-4">Result</h3>
-
 <div id="resultContent" class="text-gray-300 mb-4"></div>
 
 <button id="variationBtn"
@@ -121,10 +110,33 @@ const resultBox = document.getElementById("resultBox");
 const resultContent = document.getElementById("resultContent");
 const variationBtn = document.getElementById("variationBtn");
 const variationBox = document.getElementById("variationBox");
+const chatList = document.getElementById("chatList");
 
 let lastInput = "";
 let lastAI = "";
 let lastCategory = "";
+
+/* MEMORY SYSTEM */
+let chatHistory = JSON.parse(localStorage.getItem("promptAIChats")) || [];
+
+const renderSidebar = () => {
+  chatList.innerHTML = "";
+
+  chatHistory.forEach((chat, index) => {
+    const div = document.createElement("div");
+    div.className = "p-3 rounded-lg bg-slate-800/40 hover:bg-slate-700 cursor-pointer transition text-sm";
+    div.innerText = chat.title;
+
+    div.onclick = () => {
+      resultBox.classList.remove("hidden");
+      resultContent.innerHTML = chat.content;
+    };
+
+    chatList.appendChild(div);
+  });
+};
+
+renderSidebar();
 
 /* CATEGORY */
 const detectCategory = (text) => {
@@ -168,42 +180,33 @@ return { score, clarity, detail, tip };
 
 /* BUILDER */
 const buildPrompt = (text, ai, category) => {
-
 if (ai === "Midjourney")
 return `${text}, cinematic lighting, ultra detailed, 4k`;
-
 if (ai === "Stable Diffusion")
 return `Positive: ${text}\nNegative: blurry, low quality`;
-
 if (ai === "Claude")
 return `Structured reasoning for:\n${text}`;
-
 if (category === "Image")
 return `ROLE: Visual Designer\nSCENE:\n${text}`;
-
 if (category === "Code")
 return `ROLE: Senior Engineer\nTASK:\n${text}`;
-
 return `ROLE: Creative Expert\nCONTEXT:\n${text}`;
 };
 
 /* VARIATIONS */
 const buildVariations = (text, ai, category) => {
-
 if (ai === "Midjourney") {
 return [
 `${text}, cyberpunk neon reflections, rain soaked streets`,
 `${text}, minimalist architectural render, soft ambient light`
 ];
 }
-
 if (category === "Image") {
 return [
 `${text}, dramatic sunset lighting, cinematic color grading`,
 `${text}, ultra realistic render, volumetric lighting`
 ];
 }
-
 return [
 `Alternative framing:\n${text}`,
 `Expanded professional version:\n${text}\nAdd more depth and clarity.`
@@ -244,6 +247,14 @@ Tip: ${analysis.tip}
 
 <pre class='bg-slate-900 p-4 rounded-lg whitespace-pre-wrap text-sm'>${output}</pre>`;
 
+chatHistory.unshift({
+  title: category + " - " + new Date().toLocaleTimeString(),
+  content: resultContent.innerHTML
+});
+
+localStorage.setItem("promptAIChats", JSON.stringify(chatHistory));
+renderSidebar();
+
 lastInput = finalInput;
 lastAI = aiSelect.value;
 lastCategory = category;
@@ -251,18 +262,14 @@ lastCategory = category;
 
 /* VARIATION CLICK */
 variationBtn.addEventListener("click", () => {
-
 const vars = buildVariations(lastInput, lastAI, lastCategory);
-
 variationBox.classList.remove("hidden");
-
 variationBox.innerHTML = vars.map((v,i) =>
 `<div class='bg-slate-900 p-4 rounded-lg'>
 <h5 class='font-semibold mb-2'>Variation ${i+1}</h5>
 <pre class='whitespace-pre-wrap text-sm'>${v}</pre>
 </div>`
 ).join("");
-
 });
 
 });
