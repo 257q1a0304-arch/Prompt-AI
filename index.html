@@ -41,18 +41,82 @@
         <div class="max-w-5xl mx-auto px-6 py-20 space-y-12">
             <section id="tool" class="space-y-6">
                 <h3 class="text-2xl font-bold">Analyze Your Content</h3>
-                <textarea class="w-full h-32 p-6 rounded-2xl border border-gray-300 bg-slate-800 shadow-xl" placeholder="Enter text here..."></textarea>
-                <input type="file" class="w-full p-2 rounded-lg border border-gray-300" accept="image/*" />
-                <button class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-300 hover:scale-105">
-                    <span class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                <textarea id="promptInput" class="w-full h-32 p-6 rounded-2xl border border-gray-300 bg-slate-800 shadow-xl" placeholder="Enter text here..."></textarea>
+                <input id="imageInput" type="file" class="w-full p-2 rounded-lg border border-gray-300" accept="image/*" />
+                <button id="analyzeButton" class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-300 hover:scale-105">
+                    <span id="loadingSpinner" class="hidden inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                     Analyze
                 </button>
             </section>
             <section id="result" class="bg-slate-800 rounded-2xl p-6 shadow-xl">
                 <h3 class="text-xl font-bold">Results:</h3>
-                <p id="resultContent" class="mt-2 text-gray-200">Your AI analysis will appear here.</p>
+                <div id="resultContent" class="mt-4 text-gray-200 space-y-4">
+                    <p>Your AI analysis will appear here.</p>
+                </div>
             </section>
         </div>
     </main>
+    <script>
+        const promptInput = document.getElementById('promptInput');
+        const imageInput = document.getElementById('imageInput');
+        const analyzeButton = document.getElementById('analyzeButton');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const resultContent = document.getElementById('resultContent');
+
+        analyzeButton.addEventListener('click', () => {
+            const promptText = promptInput.value.trim();
+            const hasImage = imageInput.files.length > 0;
+
+            loadingSpinner.classList.remove('hidden');
+            analyzeButton.setAttribute('disabled', 'true');
+            analyzeButton.classList.add('opacity-80', 'cursor-not-allowed');
+
+            resultContent.innerHTML = '<p class="text-gray-400">Analyzing your input...</p>';
+
+            setTimeout(() => {
+                const results = [];
+
+                if (promptText) {
+                    results.push(`
+                        <div class="space-y-2">
+                            <h4 class="text-lg font-semibold text-white">Summary</h4>
+                            <p class="text-gray-200">Your idea focuses on delivering clear, high-impact prompts with structured guidance.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <h4 class="text-lg font-semibold text-white">Key Points</h4>
+                            <ul class="list-disc list-inside text-gray-200 space-y-1">
+                                <li>Clear objective and outcome.</li>
+                                <li>Concise and user-friendly language.</li>
+                                <li>Strong emphasis on AI-driven clarity.</li>
+                            </ul>
+                        </div>
+                        <div class="space-y-2">
+                            <h4 class="text-lg font-semibold text-white">Suggestions</h4>
+                            <p class="text-gray-200">Add measurable success metrics and include example prompts for onboarding.</p>
+                        </div>
+                    `);
+                }
+
+                if (hasImage) {
+                    results.push(`
+                        <div class="space-y-2">
+                            <h4 class="text-lg font-semibold text-white">Image Analysis</h4>
+                            <p class="text-gray-200">Image analysis complete.</p>
+                            <p class="text-gray-200">Detected elements: sample object, colors, mood.</p>
+                        </div>
+                    `);
+                }
+
+                if (!promptText && !hasImage) {
+                    results.push('<p class="text-gray-200">Please add text or upload an image to analyze.</p>');
+                }
+
+                resultContent.innerHTML = results.join('');
+                loadingSpinner.classList.add('hidden');
+                analyzeButton.removeAttribute('disabled');
+                analyzeButton.classList.remove('opacity-80', 'cursor-not-allowed');
+            }, 1500);
+        });
+    </script>
 </body>
 </html>
