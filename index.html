@@ -6,79 +6,33 @@
 <title>PromptAI</title>
 <script src="https://cdn.tailwindcss.com"></script>
 
-<script>
-tailwind.config = {
-  theme: {
-    extend: {
-      colors: {
-        primary: '#3b82f6',
-        secondary: '#8b5cf6'
-      }
-    }
-  }
-}
-</script>
-
 <style>
-html { scroll-behavior: smooth; }
-
 body {
-  background: #0f172a;
+  background: radial-gradient(circle at top left, #1e293b, #0f172a 60%);
 }
-
-@keyframes floaty {
-  0%,100% { transform: translateY(0px); }
-  50% { transform: translateY(-18px); }
-}
-
-.blur-blob {
-  filter: blur(70px);
-  opacity: 0.6;
-  animation: floaty 10s ease-in-out infinite;
-}
-
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity:0; transform: translateY(8px);}
+  to { opacity:1; transform: translateY(0);}
 }
+.fade-in { animation: fadeIn 0.4s ease-out; }
 
-.fade-in { animation: fadeIn 0.6s ease-out; }
+@keyframes successPulse {
+  0% { box-shadow: 0 0 0 0 rgba(59,130,246,0.35); }
+  70% { box-shadow: 0 0 0 12px rgba(59,130,246,0); }
+  100% { box-shadow: 0 0 0 0 rgba(59,130,246,0); }
+}
+.success-pulse { animation: successPulse 0.8s ease-out; }
 </style>
 </head>
 
-<body class="bg-slate-900 text-white min-h-screen">
+<body class="text-white min-h-screen">
 
-<nav class="p-6">
-<div class="container mx-auto">
-<h1 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+<div class="max-w-4xl mx-auto px-6 py-20 space-y-10">
+
+<h1 class="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
 PromptAI
 </h1>
-</div>
-</nav>
 
-<header class="relative flex items-center justify-center min-h-screen overflow-hidden">
-<div class="absolute inset-0">
-<div class="blur-blob absolute top-10 left-10 w-72 h-72 bg-blue-500 rounded-full"></div>
-<div class="blur-blob absolute bottom-10 right-10 w-80 h-80 bg-purple-600 rounded-full" style="animation-delay:2s;"></div>
-</div>
-
-<div class="relative text-center px-6">
-<h2 class="text-5xl font-extrabold mb-6">Turn Ideas Into Intelligent Prompts.</h2>
-<p class="text-xl mb-8">AI-Optimized Structured Prompt Generator.</p>
-<a href="#tool" class="bg-gradient-to-r from-blue-500 to-purple-600 py-2 px-6 rounded-lg hover:scale-105 transition">
-Start
-</a>
-</div>
-</header>
-
-<main>
-<div class="max-w-4xl mx-auto px-6 py-20 space-y-12">
-
-<section id="tool" class="space-y-6">
-
-<h3 class="text-2xl font-bold">Generate Optimized Prompt</h3>
-
-<label class="block text-sm font-semibold">Select Target AI</label>
 <select id="aiSelector" class="w-full p-3 rounded-lg bg-slate-800 border border-gray-600">
 <option value="GPT">GPT</option>
 <option value="Claude">Claude</option>
@@ -87,434 +41,128 @@ Start
 </select>
 
 <textarea id="promptInput"
-class="w-full h-32 p-6 rounded-2xl bg-slate-800 border border-gray-600 shadow-xl"
+class="w-full h-32 p-6 rounded-2xl bg-slate-800 border border-gray-600"
 placeholder="Describe what you want to generate..."></textarea>
 
-<button id="analyzeButton"
-class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 py-2 px-6 rounded-lg hover:scale-105 transition">
-
-<span id="loadingSpinner"
-class="hidden w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-
+<button id="generateBtn"
+class="bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-2 rounded-lg font-semibold">
 Generate Prompt
 </button>
 
-</section>
-
-<section id="result" class="bg-slate-800 rounded-2xl p-6 shadow-xl">
-<h3 class="text-xl font-bold">Result</h3>
-<div id="resultContent" class="mt-4 text-gray-200">
-<p>Your optimized prompt will appear here.</p>
+<div id="resultBox" class="bg-slate-800 p-6 rounded-xl hidden">
+<div id="categoryBadge" class="text-xs text-blue-300 mb-2"></div>
+<div id="score" class="text-xs text-emerald-400 mb-2"></div>
+<pre id="resultContent" class="whitespace-pre-wrap text-sm"></pre>
+<button id="copyBtn" class="mt-4 bg-slate-700 px-4 py-2 rounded-lg text-sm">
+Copy
+</button>
 </div>
-</section>
 
 </div>
-</main>
 
 <script>
-const promptInput = document.getElementById('promptInput');
-const analyzeButton = document.getElementById('analyzeButton');
-const loadingSpinner = document.getElementById('loadingSpinner');
-const resultContent = document.getElementById('resultContent');
-const resultSection = document.getElementById('result');
-const aiSelector = document.getElementById('aiSelector');
+document.addEventListener("DOMContentLoaded", () => {
 
-const setLoading = (state) => {
-if (state) {
-loadingSpinner.classList.remove('hidden');
-analyzeButton.disabled = true;
-} else {
-loadingSpinner.classList.add('hidden');
-analyzeButton.disabled = false;
-}
-};
+const input = document.getElementById("promptInput");
+const aiSelect = document.getElementById("aiSelector");
+const generateBtn = document.getElementById("generateBtn");
+const resultBox = document.getElementById("resultBox");
+const resultContent = document.getElementById("resultContent");
+const categoryBadge = document.getElementById("categoryBadge");
+const scoreEl = document.getElementById("score");
+const copyBtn = document.getElementById("copyBtn");
 
 const detectCategory = (text) => {
-const lowerText = text.toLowerCase();
-const categories = [
-{ name: 'Website', keywords: ['website', 'landing', 'web', 'ui', 'ux', 'dashboard', 'saas'] },
-{ name: 'Logo', keywords: ['logo', 'brand', 'identity', 'mark', 'icon'] },
-{ name: 'T-shirt', keywords: ['t-shirt', 'tshirt', 'tee', 'apparel', 'merch'] },
-{ name: 'Image / Illustration', keywords: ['image', 'illustration', 'art', 'poster', 'render', 'scene', 'visual'] },
-{ name: 'Code', keywords: ['code', 'script', 'api', 'function', 'bug', 'refactor', 'javascript', 'python'] },
-{ name: 'Business / Marketing', keywords: ['marketing', 'strategy', 'campaign', 'sales', 'brand', 'business', 'market', 'growth'] },
-{ name: 'Writing / Story', keywords: ['story', 'novel', 'write', 'blog', 'essay', 'content', 'copy'] }
-];
-
-for (const category of categories) {
-if (category.keywords.some(keyword => lowerText.includes(keyword))) {
-return category.name;
-}
-}
-
-return 'Writing / Story';
+  const t = text.toLowerCase();
+  if (t.match(/website|landing|dashboard|saas|ui|ux/)) return "Website";
+  if (t.match(/logo|brand|identity|icon/)) return "Logo";
+  if (t.match(/t-shirt|tshirt|tee|merch/)) return "T-shirt";
+  if (t.match(/code|api|script|bug|javascript|python/)) return "Code";
+  if (t.match(/marketing|growth|strategy|sales/)) return "Business";
+  if (t.match(/image|art|poster|illustration|scene/)) return "Image";
+  return "Writing";
 };
 
-const formatForGPT = (role, objective, constraints, outputFormat) => {
-return `Role:\n${role}\n\nObjective:\n${objective}\n\nConstraints:\n${constraints}\n\nOutput Format:\n${outputFormat}`;
+const generateScore = (text) => {
+  let score = 50;
+  if (text.length > 40) score += 15;
+  if (text.split(" ").length > 8) score += 15;
+  if (text.match(/style|modern|minimal|detailed|cinematic|strategy/)) score += 20;
+  return Math.min(score, 100);
 };
 
-const formatForClaude = (instructions) => {
-return `You are a careful, reasoning-first assistant.\n\nInstructions:\n${instructions}`;
-};
+const buildPrompt = (text, ai, category) => {
 
-const formatForMidjourney = (scene, style, lighting, camera, finalPrompt) => {
-return `Scene:\n${scene}\n\nStyle:\n${style}\n\nLighting:\n${lighting}\n\nCamera:\n${camera}\n\nFinal Prompt:\n${finalPrompt}`;
-};
-
-const formatForStableDiffusion = (positive, negative) => {
-return `Positive Prompt:\n${positive}\n\nNegative Prompt:\n${negative}`;
-};
-
-const generateWebsitePrompt = (text, targetAI) => {
-const objective = `Create a conversion-focused website that communicates: ${text}`;
-const constraints = '- Prioritize clarity, hierarchy, and strong CTA placement\n- Include responsive layout guidance\n- Maintain brand-consistent tone`;
-const outputFormat = '- Page structure\n- Section-by-section copy\n- Visual layout guidance';
-
-if (targetAI === 'GPT') {
-return {
-category: 'Website',
-title: 'Website Prompt (GPT)',
-content: formatForGPT('Senior product copywriter and UX strategist.', objective, constraints, outputFormat)
-};
+if (ai === "Midjourney") {
+  return `${category} concept: ${text}, ultra detailed, cinematic lighting, 4k, masterpiece`;
 }
 
-if (targetAI === 'Claude') {
-return {
-category: 'Website',
-title: 'Website Prompt (Claude)',
-content: formatForClaude(`Analyze the intent and outline a web page plan. Provide:\n1) Information architecture\n2) UX copy for each section\n3) CTA recommendations\n4) Visual hierarchy notes\n\nUser goal: ${text}`)
-};
+if (ai === "Stable Diffusion") {
+  return `Positive Prompt:
+${category} concept: ${text}, high detail, sharp focus
+
+Negative Prompt:
+blurry, low quality, distorted`;
 }
 
-if (targetAI === 'Midjourney') {
-const scene = `Modern website hero section representing: ${text}`;
-const style = 'Clean SaaS UI, premium typography, minimal gradients';
-const lighting = 'Soft ambient glow, high contrast';
-const camera = 'Front-facing, wide layout view';
-const finalPrompt = `${scene}, ${style}, ${lighting}, ultra-detailed, sharp UI mockup`;
+if (ai === "Claude") {
+  return `You are a structured reasoning assistant.
 
-return {
-category: 'Website',
-title: 'Website Prompt (Midjourney)',
-content: formatForMidjourney(scene, style, lighting, camera, finalPrompt)
-};
+Task:
+${text}
+
+Provide:
+1. Clear breakdown
+2. Strategic insight
+3. Structured response
+4. Professional tone`;
 }
 
-const positive = `${text}, modern web UI, clean layout, high-end SaaS design, crisp typography`;
-const negative = 'low quality, cluttered layout, poor contrast, messy typography';
-return {
-category: 'Website',
-title: 'Website Prompt (Stable Diffusion)',
-content: formatForStableDiffusion(positive, negative)
-};
-};
+return `Role: Senior ${category} Specialist
 
-const generateLogoPrompt = (text, targetAI) => {
-const objective = `Design a brand-ready logo for: ${text}`;
-const constraints = '- Must be scalable and recognizable\n- Provide symbol + wordmark guidance\n- Keep to a single concept style';
-const outputFormat = '- Concept summary\n- Typography notes\n- Color palette suggestions';
+Objective:
+${text}
 
-if (targetAI === 'GPT') {
-return {
-category: 'Logo',
-title: 'Logo Prompt (GPT)',
-content: formatForGPT('Senior brand identity designer.', objective, constraints, outputFormat)
-};
-}
+Requirements:
+- Clear structure
+- Practical output
+- Professional formatting
 
-if (targetAI === 'Claude') {
-return {
-category: 'Logo',
-title: 'Logo Prompt (Claude)',
-content: formatForClaude(`Develop a logo concept by reasoning through:\n1) Brand personality cues\n2) Symbol direction\n3) Typography characteristics\n4) Color palette guidance\n\nBrand concept: ${text}`)
-};
-}
-
-if (targetAI === 'Midjourney') {
-const scene = `Minimalist logo mark for ${text}`;
-const style = 'Flat vector, geometric, modern brand identity';
-const lighting = 'Clean studio lighting';
-const camera = 'Centered, minimal background';
-const finalPrompt = `${scene}, ${style}, crisp vector, high contrast, logo design`;
-
-return {
-category: 'Logo',
-title: 'Logo Prompt (Midjourney)',
-content: formatForMidjourney(scene, style, lighting, camera, finalPrompt)
-};
-}
-
-const positive = `${text}, minimalist logo, vector, clean lines, modern brand mark`;
-const negative = 'photorealistic, noisy, cluttered, illegible text';
-return {
-category: 'Logo',
-title: 'Logo Prompt (Stable Diffusion)',
-content: formatForStableDiffusion(positive, negative)
-};
+Deliver actionable results.`;
 };
 
-const generateTshirtPrompt = (text, targetAI) => {
-const objective = `Create a bold t-shirt design concept based on: ${text}`;
-const constraints = '- Emphasize wearable readability\n- Suggest typography and illustration balance\n- Provide print-ready design notes';
-const outputFormat = '- Concept summary\n- Visual composition\n- Print placement guidance';
+generateBtn.addEventListener("click", () => {
 
-if (targetAI === 'GPT') {
-return {
-category: 'T-shirt',
-title: 'T-shirt Prompt (GPT)',
-content: formatForGPT('Senior apparel graphic designer.', objective, constraints, outputFormat)
-};
-}
+const text = input.value.trim();
+if (!text) return;
 
-if (targetAI === 'Claude') {
-return {
-category: 'T-shirt',
-title: 'T-shirt Prompt (Claude)',
-content: formatForClaude(`Think through a t-shirt graphic design by detailing:\n1) Core concept\n2) Visual motif\n3) Typography style\n4) Placement and print specs\n\nTheme: ${text}`)
-};
-}
+const ai = aiSelect.value;
+const category = detectCategory(text);
+const prompt = buildPrompt(text, ai, category);
+const score = generateScore(text);
 
-if (targetAI === 'Midjourney') {
-const scene = `Graphic tee illustration themed around ${text}`;
-const style = 'Bold line art, limited color palette, streetwear aesthetic';
-const lighting = 'High contrast print-ready lighting';
-const camera = 'Front tee mockup view';
-const finalPrompt = `${scene}, ${style}, screenprint style, clean vector`;
+resultContent.textContent = prompt;
+categoryBadge.textContent = "Detected Category: " + category;
+scoreEl.textContent = "Prompt Quality Score: " + score + "/100";
 
-return {
-category: 'T-shirt',
-title: 'T-shirt Prompt (Midjourney)',
-content: formatForMidjourney(scene, style, lighting, camera, finalPrompt)
-};
-}
-
-const positive = `${text}, t-shirt graphic, bold illustration, high contrast, screenprint style`;
-const negative = 'photorealistic, blurry, messy background, low contrast';
-return {
-category: 'T-shirt',
-title: 'T-shirt Prompt (Stable Diffusion)',
-content: formatForStableDiffusion(positive, negative)
-};
-};
-
-const generateImagePrompt = (text, targetAI) => {
-const objective = `Create a high-impact visual concept for: ${text}`;
-const constraints = '- Define mood, style, and composition clearly\n- Emphasize lighting and perspective\n- Ensure cohesive visual direction';
-const outputFormat = '- Scene description\n- Style cues\n- Camera and lighting notes';
-
-if (targetAI === 'GPT') {
-return {
-category: 'Image / Illustration',
-title: 'Image Prompt (GPT)',
-content: formatForGPT('Creative director for visual storytelling.', objective, constraints, outputFormat)
-};
-}
-
-if (targetAI === 'Claude') {
-return {
-category: 'Image / Illustration',
-title: 'Image Prompt (Claude)',
-content: formatForClaude(`Break down the visual concept with reasoning for:\n1) Primary subject\n2) Composition and focal point\n3) Artistic style and medium\n4) Lighting and mood\n\nPrompt theme: ${text}`)
-};
-}
-
-if (targetAI === 'Midjourney') {
-const scene = text;
-const style = 'Cinematic, ultra-detailed, dramatic composition';
-const lighting = 'Dynamic lighting, volumetric glow';
-const camera = 'Wide cinematic framing';
-const finalPrompt = `${text}, ${style}, ${lighting}, high fidelity, 8k`;
-
-return {
-category: 'Image / Illustration',
-title: 'Image Prompt (Midjourney)',
-content: formatForMidjourney(scene, style, lighting, camera, finalPrompt)
-};
-}
-
-const positive = `${text}, cinematic lighting, high detail, sharp focus, professional illustration`;
-const negative = 'low quality, oversaturated, distorted anatomy, blurry';
-return {
-category: 'Image / Illustration',
-title: 'Image Prompt (Stable Diffusion)',
-content: formatForStableDiffusion(positive, negative)
-};
-};
-
-const generateCodePrompt = (text, targetAI) => {
-const objective = `Deliver a robust technical solution for: ${text}`;
-const constraints = '- Provide scalable architecture\n- Include edge cases and testing considerations\n- Use clear naming and best practices';
-const outputFormat = '- Approach summary\n- Key implementation steps\n- Code or pseudocode as needed';
-
-if (targetAI === 'GPT') {
-return {
-category: 'Code',
-title: 'Code Prompt (GPT)',
-content: formatForGPT('Senior software engineer and code reviewer.', objective, constraints, outputFormat)
-};
-}
-
-if (targetAI === 'Claude') {
-return {
-category: 'Code',
-title: 'Code Prompt (Claude)',
-content: formatForClaude(`Reason through the solution with:\n1) Problem understanding\n2) Implementation strategy\n3) Edge case handling\n4) Clean code guidelines\n\nTask: ${text}`)
-};
-}
-
-if (targetAI === 'Midjourney') {
-const scene = `Futuristic code workspace visualizing ${text}`;
-const style = 'Neo-tech, glowing screens, cinematic environment';
-const lighting = 'Cool blue and violet glow';
-const camera = 'Isometric workstation angle';
-const finalPrompt = `${scene}, ${style}, ${lighting}, high detail, 8k`;
-
-return {
-category: 'Code',
-title: 'Code Prompt (Midjourney)',
-content: formatForMidjourney(scene, style, lighting, camera, finalPrompt)
-};
-}
-
-const positive = `${text}, futuristic code environment, clean desk, neon lighting, high detail`;
-const negative = 'low detail, cluttered, noisy, blurry';
-return {
-category: 'Code',
-title: 'Code Prompt (Stable Diffusion)',
-content: formatForStableDiffusion(positive, negative)
-};
-};
-
-const generateBusinessPrompt = (text, targetAI) => {
-const objective = `Craft a business or marketing strategy around: ${text}`;
-const constraints = '- Include audience segmentation\n- Deliver actionable messaging\n- Provide measurable KPIs';
-const outputFormat = '- Strategy overview\n- Campaign messaging\n- KPI checklist';
-
-if (targetAI === 'GPT') {
-return {
-category: 'Business / Marketing',
-title: 'Business Prompt (GPT)',
-content: formatForGPT('Senior marketing strategist.', objective, constraints, outputFormat)
-};
-}
-
-if (targetAI === 'Claude') {
-return {
-category: 'Business / Marketing',
-title: 'Business Prompt (Claude)',
-content: formatForClaude(`Structure a go-to-market plan with:\n1) Market positioning\n2) Core messaging\n3) Channel strategy\n4) KPI framework\n\nFocus: ${text}`)
-};
-}
-
-if (targetAI === 'Midjourney') {
-const scene = `Professional marketing campaign concept for ${text}`;
-const style = 'Premium brand visuals, clean corporate aesthetics';
-const lighting = 'Bright studio lighting';
-const camera = 'Centered hero composition';
-const finalPrompt = `${scene}, ${style}, ${lighting}, crisp editorial look`;
-
-return {
-category: 'Business / Marketing',
-title: 'Business Prompt (Midjourney)',
-content: formatForMidjourney(scene, style, lighting, camera, finalPrompt)
-};
-}
-
-const positive = `${text}, polished marketing visuals, premium branding, clean layout`;
-const negative = 'low quality, unprofessional, cluttered';
-return {
-category: 'Business / Marketing',
-title: 'Business Prompt (Stable Diffusion)',
-content: formatForStableDiffusion(positive, negative)
-};
-};
-
-const generateWritingPrompt = (text, targetAI) => {
-const objective = `Develop compelling written content based on: ${text}`;
-const constraints = '- Maintain narrative clarity\n- Define tone and voice\n- Ensure strong pacing';
-const outputFormat = '- Outline\n- Key beats or sections\n- Style and tone notes';
-
-if (targetAI === 'GPT') {
-return {
-category: 'Writing / Story',
-title: 'Writing Prompt (GPT)',
-content: formatForGPT('Experienced writer and editor.', objective, constraints, outputFormat)
-};
-}
-
-if (targetAI === 'Claude') {
-return {
-category: 'Writing / Story',
-title: 'Writing Prompt (Claude)',
-content: formatForClaude(`Construct a narrative plan including:\n1) Core premise\n2) Character or concept arcs\n3) Structural outline\n4) Style guidance\n\nConcept: ${text}`)
-};
-}
-
-if (targetAI === 'Midjourney') {
-const scene = `Narrative visual concept illustrating ${text}`;
-const style = 'Illustrative, cinematic storytelling, rich detail';
-const lighting = 'Moody, atmospheric lighting';
-const camera = 'Wide storytelling shot';
-const finalPrompt = `${scene}, ${style}, ${lighting}, dramatic composition`;
-
-return {
-category: 'Writing / Story',
-title: 'Writing Prompt (Midjourney)',
-content: formatForMidjourney(scene, style, lighting, camera, finalPrompt)
-};
-}
-
-const positive = `${text}, storytelling illustration, cinematic atmosphere, high detail`;
-const negative = 'flat lighting, low detail, blurry';
-return {
-category: 'Writing / Story',
-title: 'Writing Prompt (Stable Diffusion)',
-content: formatForStableDiffusion(positive, negative)
-};
-};
-
-const generateCategoryPrompt = (category, text, targetAI) => {
-if (category === 'Website') return generateWebsitePrompt(text, targetAI);
-if (category === 'Logo') return generateLogoPrompt(text, targetAI);
-if (category === 'T-shirt') return generateTshirtPrompt(text, targetAI);
-if (category === 'Image / Illustration') return generateImagePrompt(text, targetAI);
-if (category === 'Code') return generateCodePrompt(text, targetAI);
-if (category === 'Business / Marketing') return generateBusinessPrompt(text, targetAI);
-return generateWritingPrompt(text, targetAI);
-};
-
-const renderPrompt = (data) => {
-resultContent.innerHTML = `
-<div class="space-y-3">
-<h4 class="text-lg font-semibold">${data.title}</h4>
-<pre class="bg-slate-900 p-4 rounded-lg whitespace-pre-wrap text-sm">${data.content}</pre>
-</div>
-`;
-resultSection.classList.add('fade-in');
-};
-
-const analyzeInput = () => {
-const text = promptInput.value.trim();
-const selectedAI = aiSelector.value;
-
-if (!text) {
-resultContent.innerHTML = "<p class='text-red-400'>Please enter a description.</p>";
-return;
-}
-
-setLoading(true);
-resultContent.innerHTML = "<p class='text-gray-400'>Generating optimized prompt...</p>";
+resultBox.classList.remove("hidden");
+resultBox.classList.add("fade-in", "success-pulse");
 
 setTimeout(() => {
-const category = detectCategory(text);
-const result = generateCategoryPrompt(category, text, selectedAI);
-renderPrompt(result);
-setLoading(false);
-}, 1200);
-};
-analyzeButton.addEventListener("click", analyzeInput);
+  resultBox.classList.remove("success-pulse");
+}, 800);
+
+});
+
+copyBtn.addEventListener("click", () => {
+  navigator.clipboard.writeText(resultContent.textContent);
+});
+
+});
 </script>
+
+</body>
+</html>
 
 </body>
 </html>
