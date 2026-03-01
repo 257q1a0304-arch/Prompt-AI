@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing Page</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-[#0f172a] text-white">
+    <nav class="p-6 bg-opacity-60">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-3xl font-bold">PromptAI</h1>
+        </div>
+    </nav>
+    <header class="flex items-center justify-center min-h-screen">
+        <div class="text-center">
+            <h2 class="text-4xl font-extrabold mb-4">Turn Ideas Into Intelligent Prompts.</h2>
+            <p class="text-xl mb-8">Deep AI analysis for text and images.</p>
+            <a href="#" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-2 px-4 rounded-lg">Analyze</a>
+        </div>
+    </header>
+    <main class="container mx-auto p-6">
+        <section class="mb-10">
+            <h3 class="text-2xl font-bold mb-4">Analyze Your Content</h3>
+            <textarea class="w-full h-32 p-4 rounded-lg border border-gray-300 bg-gray-800" placeholder="Enter text here..."></textarea>
+            <input type="file" class="w-full my-4 p-2 rounded-lg border border-gray-300" accept="image/*" />
+            <button class="bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-2 px-4 rounded-lg">Analyze</button>
+        </section>
+        <section id="result" class="hidden bg-gray-700 rounded-lg p-4">
+            <h3 class="text-xl font-bold">Results:</h3>
+            <p id="resultContent" class="mt-2"></p>
+        </section>
+    </main>
+</body>
+</html>
