@@ -2,27 +2,45 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PromptAI</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        primary: '#3b82f6',
+        secondary: '#8b5cf6'
+      }
+    }
+  }
+}
+</script>
 
 <style>
 html { scroll-behavior: smooth; }
 
+body {
+  background: #0f172a;
+}
+
 @keyframes floaty {
-0%,100% { transform: translateY(0px); }
-50% { transform: translateY(-18px); }
+  0%,100% { transform: translateY(0px); }
+  50% { transform: translateY(-18px); }
 }
 
 .blur-blob {
-filter: blur(70px);
-opacity: 0.6;
-animation: floaty 10s ease-in-out infinite;
+  filter: blur(70px);
+  opacity: 0.6;
+  animation: floaty 10s ease-in-out infinite;
 }
 
 @keyframes fadeIn {
-from { opacity: 0; transform: translateY(8px); }
-to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .fade-in { animation: fadeIn 0.6s ease-out; }
