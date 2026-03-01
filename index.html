@@ -153,20 +153,23 @@ resultBox.classList.remove("hidden");
 
 setTimeout(() => {
 
+let combinedInput = "";
+
 if (file) {
-resultContent.innerHTML = `
-<h4 class="text-lg font-semibold mb-2">Image Analysis Complete</h4>
-<p>Detected elements: Subject, Colors, Mood</p>
-<p>Suggested Style: Cinematic, High Contrast</p>
-`;
-} else {
-const category = detectCategory(text);
-const output = buildPrompt(text, ai, category);
+combinedInput += `Reference File: ${file.name}\nUse layout, structure and styling inspiration from this file.\n\n`;
+}
+
+if (text) {
+combinedInput += `User Objective:\n${text}`;
+}
+
+const category = detectCategory(text || file.name);
+const output = buildPrompt(combinedInput, ai, category);
+
 resultContent.innerHTML = `
 <h4 class="text-lg font-semibold mb-2">${category} Prompt</h4>
 <pre class="bg-slate-900 p-4 rounded-lg whitespace-pre-wrap text-sm">${output}</pre>
 `;
-}
 
 }, 1000);
 
