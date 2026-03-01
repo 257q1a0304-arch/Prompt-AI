@@ -8,9 +8,7 @@
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
-html {
-  scroll-behavior: smooth;
-}
+html { scroll-behavior: smooth; }
 
 @keyframes floaty {
   0%,100% { transform: translateY(0px); }
@@ -27,7 +25,7 @@ html {
 
 <body class="min-h-screen text-white bg-[radial-gradient(circle_at_top_left,#1e293b,#0f172a_60%)]">
 
-<!-- BACKGROUND BLOBS -->
+<!-- BACKGROUND -->
 <div class="absolute inset-0 -z-10 overflow-hidden">
   <div class="blur-blob absolute top-10 left-10 w-72 h-72 bg-blue-500 rounded-full"></div>
   <div class="blur-blob absolute bottom-10 right-10 w-80 h-80 bg-purple-600 rounded-full" style="animation-delay:2s;"></div>
@@ -45,75 +43,73 @@ html {
   </div>
 </nav>
 
-<!-- MAIN LAYOUT -->
 <div class="flex pt-20">
 
-  <!-- SIDEBAR -->
-  <aside class="hidden md:block w-64 border-r border-white/10 bg-white/5 backdrop-blur-xl min-h-screen p-6">
-    <h2 class="text-sm uppercase tracking-wider text-gray-400 mb-4">Chats</h2>
-    <div class="space-y-3 text-sm">
-      <div class="p-3 rounded-lg bg-slate-800/60 hover:bg-slate-700 cursor-pointer transition">
-        Website Prompt
-      </div>
-      <div class="p-3 rounded-lg bg-slate-800/40 hover:bg-slate-700 cursor-pointer transition">
-        Image Concept
-      </div>
-      <div class="p-3 rounded-lg bg-slate-800/40 hover:bg-slate-700 cursor-pointer transition">
-        Marketing Plan
-      </div>
+<!-- SIDEBAR -->
+<aside class="hidden md:block w-64 border-r border-white/10 bg-white/5 backdrop-blur-xl min-h-screen p-6">
+  <h2 class="text-sm uppercase tracking-wider text-gray-400 mb-4">Chats</h2>
+  <div class="space-y-3 text-sm">
+    <div class="p-3 rounded-lg bg-slate-800/60 hover:bg-slate-700 cursor-pointer transition">
+      Website Prompt
     </div>
-  </aside>
+    <div class="p-3 rounded-lg bg-slate-800/40 hover:bg-slate-700 cursor-pointer transition">
+      Image Concept
+    </div>
+    <div class="p-3 rounded-lg bg-slate-800/40 hover:bg-slate-700 cursor-pointer transition">
+      Marketing Plan
+    </div>
+  </div>
+</aside>
 
-  <!-- TOOL SECTION -->
-  <section id="tool" class="flex-1 max-w-4xl mx-auto px-6 py-20 space-y-6">
+<!-- TOOL -->
+<section class="flex-1 max-w-4xl mx-auto px-6 py-20 space-y-6">
 
-  <h3 class="text-2xl font-bold">Generate Optimized Prompt</h3>
+<h3 class="text-2xl font-bold">Generate Optimized Prompt</h3>
 
-  <select id="aiSelector" class="w-full p-3 rounded-lg bg-slate-800 border border-gray-600">
-  <option value="GPT">GPT</option>
-  <option value="Claude">Claude</option>
-  <option value="Midjourney">Midjourney</option>
-  <option value="Stable Diffusion">Stable Diffusion</option>
-  </select>
+<select id="aiSelector" class="w-full p-3 rounded-lg bg-slate-800 border border-gray-600">
+<option value="GPT">GPT</option>
+<option value="Claude">Claude</option>
+<option value="Midjourney">Midjourney</option>
+<option value="Stable Diffusion">Stable Diffusion</option>
+</select>
 
-  <textarea id="promptInput"
-  class="w-full h-32 p-6 rounded-2xl bg-slate-800 border border-gray-600 shadow-xl"
-  placeholder="Describe what you want to generate..."></textarea>
+<textarea id="promptInput"
+class="w-full h-32 p-6 rounded-2xl bg-slate-800 border border-gray-600 shadow-xl"
+placeholder="Describe what you want to generate..."></textarea>
 
-  <input type="file" id="imageUpload"
-  class="w-full p-3 rounded-lg bg-slate-800 border border-gray-600 text-sm" />
-    <label class="flex items-center gap-3 text-sm text-gray-300">
+<input type="file" id="imageUpload"
+class="w-full p-3 rounded-lg bg-slate-800 border border-gray-600 text-sm" />
+
+<label class="flex items-center gap-3 text-sm text-gray-300">
   <input type="checkbox" id="advancedMode" class="accent-purple-500 w-4 h-4">
   Enable Advanced Prompt Intelligence
 </label>
 
-  <button id="generateBtn"
-  class="bg-gradient-to-r from-blue-500 to-purple-600 py-2 px-6 rounded-lg hover:scale-105 transition">
-  Generate Prompt
-  </button>
+<button id="generateBtn"
+class="bg-gradient-to-r from-blue-500 to-purple-600 py-2 px-6 rounded-lg hover:scale-105 transition">
+Generate Prompt
+</button>
 
-  <!-- RESULT -->
-  <div id="resultBox" class="bg-slate-800 rounded-2xl p-6 shadow-xl hidden">
-  <h3 class="text-xl font-bold mb-4">Result</h3>
+<!-- RESULT -->
+<div id="resultBox" class="bg-slate-800 rounded-2xl p-6 shadow-xl hidden">
+<h3 class="text-xl font-bold mb-4">Result</h3>
 
-  <div id="resultContent" class="text-gray-300 mb-4"></div>
+<div id="resultContent" class="text-gray-300 mb-4"></div>
 
-  <button id="copyBtn"
-  class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm transition">
-  Copy Prompt
-  </button>
+<button id="copyBtn"
+class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm transition">
+Copy Prompt
+</button>
 
-  <span id="copyStatus" class="ml-3 text-sm text-green-400 hidden">
-  Copied!
-  </span>
-  </div>
+<span id="copyStatus" class="ml-3 text-sm text-green-400 hidden">
+Copied!
+</span>
+</div>
 
-  </section>
-
+</section>
 </div>
 
 <script>
-/* YOUR ORIGINAL JS UNTOUCHED */
 document.addEventListener("DOMContentLoaded", () => {
 
 const input = document.getElementById("promptInput");
@@ -126,31 +122,23 @@ const imageUpload = document.getElementById("imageUpload");
 const copyBtn = document.getElementById("copyBtn");
 const copyStatus = document.getElementById("copyStatus");
 
+/* CATEGORY DETECTION */
 const detectCategory = (text) => {
 const t = text.toLowerCase();
 
-// WEBSITE
 if (t.match(/website|landing|dashboard|saas|ui|ux/)) return "Website";
-
-// LOGO
 if (t.match(/logo|brand|identity|icon/)) return "Logo";
-
-// TSHIRT
 if (t.match(/t-shirt|tshirt|tee|merch/)) return "T-shirt";
-
-// CODE
 if (t.match(/code|api|script|bug|javascript|python/)) return "Code";
-
-// BUSINESS
 if (t.match(/marketing|growth|strategy|sales/)) return "Business";
 
-// IMAGE / VISUAL DETECTION (UPGRADED)
 if (t.match(/city|character|landscape|portrait|robot|future|futuristic|night|forest|space|cyberpunk|fantasy|realistic|anime|cinematic/))
 return "Image";
 
-// DEFAULT
 return "Writing";
 };
+
+/* ADVANCED ENHANCER */
 const enhancePrompt = (text, category) => {
 
 if (category === "Image") {
@@ -190,34 +178,27 @@ return `${text}
 
 Make the output highly detailed, structured, and professional.`;
 };
+
+/* PROMPT BUILDER */
 const buildPrompt = (text, ai, category) => {
 
 if (ai === "Midjourney") {
 return `
-SCENE:
-${text}
-
-STYLE:
-Cinematic, ultra detailed, artistic composition
-
-LIGHTING:
-Dramatic soft lighting, high contrast
-
-CAMERA:
-Wide angle, depth of field
-
-FINAL PROMPT:
-${text}, cinematic lighting, ultra detailed, 4k, masterpiece
+${text},
+cinematic lighting,
+ultra detailed,
+4k,
+masterpiece
 `;
 }
 
 if (ai === "Stable Diffusion") {
 return `
 POSITIVE PROMPT:
-${category} concept: ${text}, highly detailed, sharp focus, professional quality
+${text}, highly detailed, sharp focus
 
 NEGATIVE PROMPT:
-blurry, low quality, distorted anatomy, bad composition
+blurry, low quality, distorted
 `;
 }
 
@@ -228,52 +209,60 @@ You are a reasoning-first expert AI assistant.
 TASK:
 ${text}
 
-RESPONSE STRUCTURE:
-1. Clear understanding of the objective
-2. Strategic breakdown
-3. Structured solution
-4. Actionable recommendations
+Provide structured analysis and actionable output.
+`;
+}
+
+/* GPT CATEGORY AWARE */
+
+if (category === "Website") {
+return `
+ROLE:
+Senior Website Architect & UX Strategist
+
+PROJECT CONTEXT:
+${text}
+
+Deliver structured layout, UX hierarchy, and conversion strategy.
+`;
+}
+
+if (category === "Image") {
+return `
+ROLE:
+Senior Visual Concept Designer
+
+SCENE:
+${text}
+
+Deliver lighting, environment, camera, and rendering direction.
+`;
+}
+
+if (category === "Code") {
+return `
+ROLE:
+Senior Software Engineer
+
+TASK:
+${text}
+
+Deliver scalable, clean, well-documented implementation.
 `;
 }
 
 return `
 ROLE:
-Senior ${category} Architect & UX Strategist
+Professional Creative Writer
 
-PROJECT CONTEXT:
+CONCEPT:
 ${text}
 
-DELIVER:
-
-1️⃣ INFORMATION ARCHITECTURE
-- Page structure breakdown
-- Section hierarchy
-- Logical flow
-
-2️⃣ SECTION-BY-SECTION PLAN
-- Hero section messaging
-- Core value proposition
-- Feature blocks
-- Social proof
-- Call-to-action placement
-
-3️⃣ DESIGN DIRECTION
-- Visual tone
-- Layout style
-- Typography suggestions
-- UI/UX clarity improvements
-
-4️⃣ CONVERSION STRATEGY
-- Primary CTA
-- Secondary CTA
-- Engagement triggers
-
-FORMAT:
-Use clear headings and bullet points.
-Provide actionable implementation guidance.
+Deliver structured creative development and refinement.
 `;
 };
 
+/* MAIN BUTTON */
 button.addEventListener("click", () => {
 
 const text = input.value.trim();
@@ -289,45 +278,28 @@ return;
 resultContent.innerHTML = "<p class='text-gray-400'>Analyzing...</p>";
 resultBox.classList.remove("hidden");
 
-const processPrompt = (fileAnalysis = "") => {
+let combinedInput = text;
 
-let combinedInput = "";
-
-if (fileAnalysis) combinedInput += `Reference File Analysis:\n${fileAnalysis}\n\n`;
-if (text) combinedInput += `User Objective:\n${text}`;
-
-let category;
+let category = detectCategory(text || "");
 
 if (file) {
   if (file.name.endsWith(".html")) category = "Website";
   else if (file.name.endsWith(".js")) category = "Code";
   else if (file.type.startsWith("image/")) category = "Image";
-  else category = detectCategory(text || "");
-} else {
-  category = detectCategory(text || "");
 }
-
-let finalInput = combinedInput;
 
 if (advancedToggle.checked) {
-  finalInput = enhancePrompt(combinedInput, category);
+  combinedInput = enhancePrompt(combinedInput, category);
 }
 
-const output = buildPrompt(finalInput, ai, category);
+const output = buildPrompt(combinedInput, ai, category);
 
-resultContent.innerHTML = `<h4 class='text-lg font-semibold mb-2'>${category} Prompt</h4>\n<pre class='bg-slate-900 p-4 rounded-lg whitespace-pre-wrap text-sm'>${output}</pre>`;
-};
-
-if (file) {
-const reader = new FileReader();
-reader.onload = e => processPrompt(`File: ${file.name}`);
-reader.readAsText(file);
-} else {
-processPrompt();
-}
-
+resultContent.innerHTML =
+`<h4 class='text-lg font-semibold mb-2'>${category} Prompt</h4>
+<pre class='bg-slate-900 p-4 rounded-lg whitespace-pre-wrap text-sm'>${output}</pre>`;
 });
 
+/* COPY */
 copyBtn.addEventListener("click", async () => {
 const textToCopy = resultContent.innerText.trim();
 if (!textToCopy) return;
