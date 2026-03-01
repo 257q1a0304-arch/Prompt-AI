@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PromptAI</title>
-
 <script src="https://cdn.tailwindcss.com"></script>
 
 <script>
@@ -130,81 +129,359 @@ analyzeButton.disabled = false;
 }
 };
 
-const generatePromptForAI = (text, targetAI) => {
-if (targetAI === "GPT") {
+const detectCategory = (text) => {
+const lowerText = text.toLowerCase();
+const categories = [
+{ name: 'Website', keywords: ['website', 'landing', 'web', 'ui', 'ux', 'dashboard', 'saas'] },
+{ name: 'Logo', keywords: ['logo', 'brand', 'identity', 'mark', 'icon'] },
+{ name: 'T-shirt', keywords: ['t-shirt', 'tshirt', 'tee', 'apparel', 'merch'] },
+{ name: 'Image / Illustration', keywords: ['image', 'illustration', 'art', 'poster', 'render', 'scene', 'visual'] },
+{ name: 'Code', keywords: ['code', 'script', 'api', 'function', 'bug', 'refactor', 'javascript', 'python'] },
+{ name: 'Business / Marketing', keywords: ['marketing', 'strategy', 'campaign', 'sales', 'brand', 'business', 'market', 'growth'] },
+{ name: 'Writing / Story', keywords: ['story', 'novel', 'write', 'blog', 'essay', 'content', 'copy'] }
+];
+
+for (const category of categories) {
+if (category.keywords.some(keyword => lowerText.includes(keyword))) {
+return category.name;
+}
+}
+
+return 'Writing / Story';
+};
+
+const formatForGPT = (role, objective, constraints, outputFormat) => {
+return `Role:\n${role}\n\nObjective:\n${objective}\n\nConstraints:\n${constraints}\n\nOutput Format:\n${outputFormat}`;
+};
+
+const formatForClaude = (instructions) => {
+return `You are a careful, reasoning-first assistant.\n\nInstructions:\n${instructions}`;
+};
+
+const formatForMidjourney = (scene, style, lighting, camera, finalPrompt) => {
+return `Scene:\n${scene}\n\nStyle:\n${style}\n\nLighting:\n${lighting}\n\nCamera:\n${camera}\n\nFinal Prompt:\n${finalPrompt}`;
+};
+
+const formatForStableDiffusion = (positive, negative) => {
+return `Positive Prompt:\n${positive}\n\nNegative Prompt:\n${negative}`;
+};
+
+const generateWebsitePrompt = (text, targetAI) => {
+const objective = `Create a conversion-focused website that communicates: ${text}`;
+const constraints = '- Prioritize clarity, hierarchy, and strong CTA placement\n- Include responsive layout guidance\n- Maintain brand-consistent tone`;
+const outputFormat = '- Page structure\n- Section-by-section copy\n- Visual layout guidance';
+
+if (targetAI === 'GPT') {
 return {
-title: "GPT Structured Prompt",
-content: `
-Role:
-Act as an expert AI assistant.
-
-Objective:
-${text}
-
-Constraints:
-- Be clear and concise
-- Stay on task
-- Avoid vague language
-
-Output Format:
-Use sections and bullet points where helpful.
-`
+category: 'Website',
+title: 'Website Prompt (GPT)',
+content: formatForGPT('Senior product copywriter and UX strategist.', objective, constraints, outputFormat)
 };
 }
 
-if (targetAI === "Claude") {
+if (targetAI === 'Claude') {
 return {
-title: "Claude Structured Instruction",
-content: `
-You are a thoughtful, detail-oriented assistant.
-
-Task:
-${text}
-
-Instructions:
-- Provide a structured response
-- Include reasoning and clear formatting
-- Keep tone professional
-`
+category: 'Website',
+title: 'Website Prompt (Claude)',
+content: formatForClaude(`Analyze the intent and outline a web page plan. Provide:\n1) Information architecture\n2) UX copy for each section\n3) CTA recommendations\n4) Visual hierarchy notes\n\nUser goal: ${text}`)
 };
 }
 
-if (targetAI === "Midjourney") {
+if (targetAI === 'Midjourney') {
+const scene = `Modern website hero section representing: ${text}`;
+const style = 'Clean SaaS UI, premium typography, minimal gradients';
+const lighting = 'Soft ambient glow, high contrast';
+const camera = 'Front-facing, wide layout view';
+const finalPrompt = `${scene}, ${style}, ${lighting}, ultra-detailed, sharp UI mockup`;
+
 return {
-title: "Midjourney Visual Prompt",
-content: `
-Scene:
-${text}
-
-Style:
-Cinematic, high-detail, artstation quality
-
-Lighting:
-Soft dramatic lighting
-
-Camera:
-Wide-angle, depth of field
-
-Final Prompt:
-${text}, cinematic lighting, ultra detailed, 4k, masterpiece
-`
+category: 'Website',
+title: 'Website Prompt (Midjourney)',
+content: formatForMidjourney(scene, style, lighting, camera, finalPrompt)
 };
 }
 
-if (targetAI === "Stable Diffusion") {
+const positive = `${text}, modern web UI, clean layout, high-end SaaS design, crisp typography`;
+const negative = 'low quality, cluttered layout, poor contrast, messy typography';
 return {
-title: "Stable Diffusion Prompt",
-content: `
-Positive Prompt:
-${text}, highly detailed, realistic, sharp focus
+category: 'Website',
+title: 'Website Prompt (Stable Diffusion)',
+content: formatForStableDiffusion(positive, negative)
+};
+};
 
-Negative Prompt:
-blurry, low quality, distorted, extra limbs
-`
+const generateLogoPrompt = (text, targetAI) => {
+const objective = `Design a brand-ready logo for: ${text}`;
+const constraints = '- Must be scalable and recognizable\n- Provide symbol + wordmark guidance\n- Keep to a single concept style';
+const outputFormat = '- Concept summary\n- Typography notes\n- Color palette suggestions';
+
+if (targetAI === 'GPT') {
+return {
+category: 'Logo',
+title: 'Logo Prompt (GPT)',
+content: formatForGPT('Senior brand identity designer.', objective, constraints, outputFormat)
 };
 }
 
-return { title: "Prompt", content: text };
+if (targetAI === 'Claude') {
+return {
+category: 'Logo',
+title: 'Logo Prompt (Claude)',
+content: formatForClaude(`Develop a logo concept by reasoning through:\n1) Brand personality cues\n2) Symbol direction\n3) Typography characteristics\n4) Color palette guidance\n\nBrand concept: ${text}`)
+};
+}
+
+if (targetAI === 'Midjourney') {
+const scene = `Minimalist logo mark for ${text}`;
+const style = 'Flat vector, geometric, modern brand identity';
+const lighting = 'Clean studio lighting';
+const camera = 'Centered, minimal background';
+const finalPrompt = `${scene}, ${style}, crisp vector, high contrast, logo design`;
+
+return {
+category: 'Logo',
+title: 'Logo Prompt (Midjourney)',
+content: formatForMidjourney(scene, style, lighting, camera, finalPrompt)
+};
+}
+
+const positive = `${text}, minimalist logo, vector, clean lines, modern brand mark`;
+const negative = 'photorealistic, noisy, cluttered, illegible text';
+return {
+category: 'Logo',
+title: 'Logo Prompt (Stable Diffusion)',
+content: formatForStableDiffusion(positive, negative)
+};
+};
+
+const generateTshirtPrompt = (text, targetAI) => {
+const objective = `Create a bold t-shirt design concept based on: ${text}`;
+const constraints = '- Emphasize wearable readability\n- Suggest typography and illustration balance\n- Provide print-ready design notes';
+const outputFormat = '- Concept summary\n- Visual composition\n- Print placement guidance';
+
+if (targetAI === 'GPT') {
+return {
+category: 'T-shirt',
+title: 'T-shirt Prompt (GPT)',
+content: formatForGPT('Senior apparel graphic designer.', objective, constraints, outputFormat)
+};
+}
+
+if (targetAI === 'Claude') {
+return {
+category: 'T-shirt',
+title: 'T-shirt Prompt (Claude)',
+content: formatForClaude(`Think through a t-shirt graphic design by detailing:\n1) Core concept\n2) Visual motif\n3) Typography style\n4) Placement and print specs\n\nTheme: ${text}`)
+};
+}
+
+if (targetAI === 'Midjourney') {
+const scene = `Graphic tee illustration themed around ${text}`;
+const style = 'Bold line art, limited color palette, streetwear aesthetic';
+const lighting = 'High contrast print-ready lighting';
+const camera = 'Front tee mockup view';
+const finalPrompt = `${scene}, ${style}, screenprint style, clean vector`;
+
+return {
+category: 'T-shirt',
+title: 'T-shirt Prompt (Midjourney)',
+content: formatForMidjourney(scene, style, lighting, camera, finalPrompt)
+};
+}
+
+const positive = `${text}, t-shirt graphic, bold illustration, high contrast, screenprint style`;
+const negative = 'photorealistic, blurry, messy background, low contrast';
+return {
+category: 'T-shirt',
+title: 'T-shirt Prompt (Stable Diffusion)',
+content: formatForStableDiffusion(positive, negative)
+};
+};
+
+const generateImagePrompt = (text, targetAI) => {
+const objective = `Create a high-impact visual concept for: ${text}`;
+const constraints = '- Define mood, style, and composition clearly\n- Emphasize lighting and perspective\n- Ensure cohesive visual direction';
+const outputFormat = '- Scene description\n- Style cues\n- Camera and lighting notes';
+
+if (targetAI === 'GPT') {
+return {
+category: 'Image / Illustration',
+title: 'Image Prompt (GPT)',
+content: formatForGPT('Creative director for visual storytelling.', objective, constraints, outputFormat)
+};
+}
+
+if (targetAI === 'Claude') {
+return {
+category: 'Image / Illustration',
+title: 'Image Prompt (Claude)',
+content: formatForClaude(`Break down the visual concept with reasoning for:\n1) Primary subject\n2) Composition and focal point\n3) Artistic style and medium\n4) Lighting and mood\n\nPrompt theme: ${text}`)
+};
+}
+
+if (targetAI === 'Midjourney') {
+const scene = text;
+const style = 'Cinematic, ultra-detailed, dramatic composition';
+const lighting = 'Dynamic lighting, volumetric glow';
+const camera = 'Wide cinematic framing';
+const finalPrompt = `${text}, ${style}, ${lighting}, high fidelity, 8k`;
+
+return {
+category: 'Image / Illustration',
+title: 'Image Prompt (Midjourney)',
+content: formatForMidjourney(scene, style, lighting, camera, finalPrompt)
+};
+}
+
+const positive = `${text}, cinematic lighting, high detail, sharp focus, professional illustration`;
+const negative = 'low quality, oversaturated, distorted anatomy, blurry';
+return {
+category: 'Image / Illustration',
+title: 'Image Prompt (Stable Diffusion)',
+content: formatForStableDiffusion(positive, negative)
+};
+};
+
+const generateCodePrompt = (text, targetAI) => {
+const objective = `Deliver a robust technical solution for: ${text}`;
+const constraints = '- Provide scalable architecture\n- Include edge cases and testing considerations\n- Use clear naming and best practices';
+const outputFormat = '- Approach summary\n- Key implementation steps\n- Code or pseudocode as needed';
+
+if (targetAI === 'GPT') {
+return {
+category: 'Code',
+title: 'Code Prompt (GPT)',
+content: formatForGPT('Senior software engineer and code reviewer.', objective, constraints, outputFormat)
+};
+}
+
+if (targetAI === 'Claude') {
+return {
+category: 'Code',
+title: 'Code Prompt (Claude)',
+content: formatForClaude(`Reason through the solution with:\n1) Problem understanding\n2) Implementation strategy\n3) Edge case handling\n4) Clean code guidelines\n\nTask: ${text}`)
+};
+}
+
+if (targetAI === 'Midjourney') {
+const scene = `Futuristic code workspace visualizing ${text}`;
+const style = 'Neo-tech, glowing screens, cinematic environment';
+const lighting = 'Cool blue and violet glow';
+const camera = 'Isometric workstation angle';
+const finalPrompt = `${scene}, ${style}, ${lighting}, high detail, 8k`;
+
+return {
+category: 'Code',
+title: 'Code Prompt (Midjourney)',
+content: formatForMidjourney(scene, style, lighting, camera, finalPrompt)
+};
+}
+
+const positive = `${text}, futuristic code environment, clean desk, neon lighting, high detail`;
+const negative = 'low detail, cluttered, noisy, blurry';
+return {
+category: 'Code',
+title: 'Code Prompt (Stable Diffusion)',
+content: formatForStableDiffusion(positive, negative)
+};
+};
+
+const generateBusinessPrompt = (text, targetAI) => {
+const objective = `Craft a business or marketing strategy around: ${text}`;
+const constraints = '- Include audience segmentation\n- Deliver actionable messaging\n- Provide measurable KPIs';
+const outputFormat = '- Strategy overview\n- Campaign messaging\n- KPI checklist';
+
+if (targetAI === 'GPT') {
+return {
+category: 'Business / Marketing',
+title: 'Business Prompt (GPT)',
+content: formatForGPT('Senior marketing strategist.', objective, constraints, outputFormat)
+};
+}
+
+if (targetAI === 'Claude') {
+return {
+category: 'Business / Marketing',
+title: 'Business Prompt (Claude)',
+content: formatForClaude(`Structure a go-to-market plan with:\n1) Market positioning\n2) Core messaging\n3) Channel strategy\n4) KPI framework\n\nFocus: ${text}`)
+};
+}
+
+if (targetAI === 'Midjourney') {
+const scene = `Professional marketing campaign concept for ${text}`;
+const style = 'Premium brand visuals, clean corporate aesthetics';
+const lighting = 'Bright studio lighting';
+const camera = 'Centered hero composition';
+const finalPrompt = `${scene}, ${style}, ${lighting}, crisp editorial look`;
+
+return {
+category: 'Business / Marketing',
+title: 'Business Prompt (Midjourney)',
+content: formatForMidjourney(scene, style, lighting, camera, finalPrompt)
+};
+}
+
+const positive = `${text}, polished marketing visuals, premium branding, clean layout`;
+const negative = 'low quality, unprofessional, cluttered';
+return {
+category: 'Business / Marketing',
+title: 'Business Prompt (Stable Diffusion)',
+content: formatForStableDiffusion(positive, negative)
+};
+};
+
+const generateWritingPrompt = (text, targetAI) => {
+const objective = `Develop compelling written content based on: ${text}`;
+const constraints = '- Maintain narrative clarity\n- Define tone and voice\n- Ensure strong pacing';
+const outputFormat = '- Outline\n- Key beats or sections\n- Style and tone notes';
+
+if (targetAI === 'GPT') {
+return {
+category: 'Writing / Story',
+title: 'Writing Prompt (GPT)',
+content: formatForGPT('Experienced writer and editor.', objective, constraints, outputFormat)
+};
+}
+
+if (targetAI === 'Claude') {
+return {
+category: 'Writing / Story',
+title: 'Writing Prompt (Claude)',
+content: formatForClaude(`Construct a narrative plan including:\n1) Core premise\n2) Character or concept arcs\n3) Structural outline\n4) Style guidance\n\nConcept: ${text}`)
+};
+}
+
+if (targetAI === 'Midjourney') {
+const scene = `Narrative visual concept illustrating ${text}`;
+const style = 'Illustrative, cinematic storytelling, rich detail';
+const lighting = 'Moody, atmospheric lighting';
+const camera = 'Wide storytelling shot';
+const finalPrompt = `${scene}, ${style}, ${lighting}, dramatic composition`;
+
+return {
+category: 'Writing / Story',
+title: 'Writing Prompt (Midjourney)',
+content: formatForMidjourney(scene, style, lighting, camera, finalPrompt)
+};
+}
+
+const positive = `${text}, storytelling illustration, cinematic atmosphere, high detail`;
+const negative = 'flat lighting, low detail, blurry';
+return {
+category: 'Writing / Story',
+title: 'Writing Prompt (Stable Diffusion)',
+content: formatForStableDiffusion(positive, negative)
+};
+};
+
+const generateCategoryPrompt = (category, text, targetAI) => {
+if (category === 'Website') return generateWebsitePrompt(text, targetAI);
+if (category === 'Logo') return generateLogoPrompt(text, targetAI);
+if (category === 'T-shirt') return generateTshirtPrompt(text, targetAI);
+if (category === 'Image / Illustration') return generateImagePrompt(text, targetAI);
+if (category === 'Code') return generateCodePrompt(text, targetAI);
+if (category === 'Business / Marketing') return generateBusinessPrompt(text, targetAI);
+return generateWritingPrompt(text, targetAI);
 };
 
 const renderPrompt = (data) => {
@@ -230,12 +507,12 @@ setLoading(true);
 resultContent.innerHTML = "<p class='text-gray-400'>Generating optimized prompt...</p>";
 
 setTimeout(() => {
-const result = generatePromptForAI(text, selectedAI);
+const category = detectCategory(text);
+const result = generateCategoryPrompt(category, text, selectedAI);
 renderPrompt(result);
 setLoading(false);
 }, 1200);
 };
-
 analyzeButton.addEventListener("click", analyzeInput);
 </script>
 
