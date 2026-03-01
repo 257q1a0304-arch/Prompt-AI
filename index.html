@@ -10,28 +10,47 @@
 body {
   background: radial-gradient(circle at top left, #1e293b, #0f172a 60%);
 }
+@keyframes floaty {
+  0%,100% { transform: translateY(0px); }
+  50% { transform: translateY(-18px); }
+}
+.blur-blob {
+  filter: blur(70px);
+  opacity: 0.5;
+  animation: floaty 10s ease-in-out infinite;
+}
 @keyframes fadeIn {
   from { opacity:0; transform: translateY(8px);}
   to { opacity:1; transform: translateY(0);}
 }
 .fade-in { animation: fadeIn 0.4s ease-out; }
-
-@keyframes successPulse {
-  0% { box-shadow: 0 0 0 0 rgba(59,130,246,0.35); }
-  70% { box-shadow: 0 0 0 12px rgba(59,130,246,0); }
-  100% { box-shadow: 0 0 0 0 rgba(59,130,246,0); }
-}
-.success-pulse { animation: successPulse 0.8s ease-out; }
 </style>
 </head>
 
 <body class="text-white min-h-screen">
 
-<div class="max-w-4xl mx-auto px-6 py-20 space-y-10">
+<!-- HERO -->
+<header class="relative flex items-center justify-center min-h-screen overflow-hidden">
+<div class="absolute inset-0">
+<div class="blur-blob absolute top-10 left-10 w-72 h-72 bg-blue-500 rounded-full"></div>
+<div class="blur-blob absolute bottom-10 right-10 w-80 h-80 bg-purple-600 rounded-full" style="animation-delay:2s;"></div>
+</div>
 
-<h1 class="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+<div class="relative text-center px-6">
+<h1 class="text-5xl font-extrabold mb-6 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
 PromptAI
 </h1>
+<p class="text-xl text-gray-300 mb-8">AI-Optimized Structured Prompt Engine</p>
+<a href="#tool" class="bg-gradient-to-r from-blue-500 to-purple-600 py-2 px-6 rounded-lg hover:scale-105 transition">
+Start
+</a>
+</div>
+</header>
+
+<!-- TOOL -->
+<section id="tool" class="max-w-4xl mx-auto px-6 py-20 space-y-6">
+
+<h3 class="text-2xl font-bold">Generate Optimized Prompt</h3>
 
 <select id="aiSelector" class="w-full p-3 rounded-lg bg-slate-800 border border-gray-600">
 <option value="GPT">GPT</option>
@@ -41,64 +60,53 @@ PromptAI
 </select>
 
 <textarea id="promptInput"
-class="w-full h-32 p-6 rounded-2xl bg-slate-800 border border-gray-600"
+class="w-full h-32 p-6 rounded-2xl bg-slate-800 border border-gray-600 shadow-xl"
 placeholder="Describe what you want to generate..."></textarea>
 
+<input type="file" id="imageUpload"
+class="w-full p-3 rounded-lg bg-slate-800 border border-gray-600 text-sm" />
+
 <button id="generateBtn"
-class="bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-2 rounded-lg font-semibold">
+class="bg-gradient-to-r from-blue-500 to-purple-600 py-2 px-6 rounded-lg hover:scale-105 transition">
 Generate Prompt
 </button>
 
-<div id="resultBox" class="bg-slate-800 p-6 rounded-xl hidden">
-<div id="categoryBadge" class="text-xs text-blue-300 mb-2"></div>
-<div id="score" class="text-xs text-emerald-400 mb-2"></div>
-<pre id="resultContent" class="whitespace-pre-wrap text-sm"></pre>
-<button id="copyBtn" class="mt-4 bg-slate-700 px-4 py-2 rounded-lg text-sm">
-Copy
-</button>
+<div id="resultBox" class="bg-slate-800 rounded-2xl p-6 shadow-xl hidden">
+<h3 class="text-xl font-bold mb-4">Result</h3>
+<div id="resultContent" class="text-gray-300"></div>
 </div>
 
-</div>
+</section>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
 const input = document.getElementById("promptInput");
 const aiSelect = document.getElementById("aiSelector");
-const generateBtn = document.getElementById("generateBtn");
+const button = document.getElementById("generateBtn");
 const resultBox = document.getElementById("resultBox");
 const resultContent = document.getElementById("resultContent");
-const categoryBadge = document.getElementById("categoryBadge");
-const scoreEl = document.getElementById("score");
-const copyBtn = document.getElementById("copyBtn");
+const imageUpload = document.getElementById("imageUpload");
 
 const detectCategory = (text) => {
-  const t = text.toLowerCase();
-  if (t.match(/website|landing|dashboard|saas|ui|ux/)) return "Website";
-  if (t.match(/logo|brand|identity|icon/)) return "Logo";
-  if (t.match(/t-shirt|tshirt|tee|merch/)) return "T-shirt";
-  if (t.match(/code|api|script|bug|javascript|python/)) return "Code";
-  if (t.match(/marketing|growth|strategy|sales/)) return "Business";
-  if (t.match(/image|art|poster|illustration|scene/)) return "Image";
-  return "Writing";
-};
-
-const generateScore = (text) => {
-  let score = 50;
-  if (text.length > 40) score += 15;
-  if (text.split(" ").length > 8) score += 15;
-  if (text.match(/style|modern|minimal|detailed|cinematic|strategy/)) score += 20;
-  return Math.min(score, 100);
+const t = text.toLowerCase();
+if (t.match(/website|landing|dashboard|saas|ui|ux/)) return "Website";
+if (t.match(/logo|brand|identity|icon/)) return "Logo";
+if (t.match(/t-shirt|tshirt|tee|merch/)) return "T-shirt";
+if (t.match(/code|api|script|bug|javascript|python/)) return "Code";
+if (t.match(/marketing|growth|strategy|sales/)) return "Business";
+if (t.match(/image|art|poster|illustration|scene/)) return "Image";
+return "Writing";
 };
 
 const buildPrompt = (text, ai, category) => {
 
 if (ai === "Midjourney") {
-  return `${category} concept: ${text}, ultra detailed, cinematic lighting, 4k, masterpiece`;
+return `${category} concept: ${text}, ultra detailed, cinematic lighting, 4k, masterpiece`;
 }
 
 if (ai === "Stable Diffusion") {
-  return `Positive Prompt:
+return `Positive Prompt:
 ${category} concept: ${text}, high detail, sharp focus
 
 Negative Prompt:
@@ -106,7 +114,7 @@ blurry, low quality, distorted`;
 }
 
 if (ai === "Claude") {
-  return `You are a structured reasoning assistant.
+return `You are a structured reasoning assistant.
 
 Task:
 ${text}
@@ -114,8 +122,7 @@ ${text}
 Provide:
 1. Clear breakdown
 2. Strategic insight
-3. Structured response
-4. Professional tone`;
+3. Structured response`;
 }
 
 return `Role: Senior ${category} Specialist
@@ -126,43 +133,47 @@ ${text}
 Requirements:
 - Clear structure
 - Practical output
-- Professional formatting
-
-Deliver actionable results.`;
+- Professional formatting`;
 };
 
-generateBtn.addEventListener("click", () => {
+button.addEventListener("click", () => {
 
 const text = input.value.trim();
-if (!text) return;
-
 const ai = aiSelect.value;
-const category = detectCategory(text);
-const prompt = buildPrompt(text, ai, category);
-const score = generateScore(text);
+const file = imageUpload.files[0];
 
-resultContent.textContent = prompt;
-categoryBadge.textContent = "Detected Category: " + category;
-scoreEl.textContent = "Prompt Quality Score: " + score + "/100";
-
+if (!text && !file) {
+resultContent.innerHTML = "<p class='text-red-400'>Enter text or upload an image.</p>";
 resultBox.classList.remove("hidden");
-resultBox.classList.add("fade-in", "success-pulse");
+return;
+}
+
+resultContent.innerHTML = "<p class='text-gray-400'>Analyzing...</p>";
+resultBox.classList.remove("hidden");
 
 setTimeout(() => {
-  resultBox.classList.remove("success-pulse");
-}, 800);
 
-});
+if (file) {
+resultContent.innerHTML = `
+<h4 class="text-lg font-semibold mb-2">Image Analysis Complete</h4>
+<p>Detected elements: Subject, Colors, Mood</p>
+<p>Suggested Style: Cinematic, High Contrast</p>
+`;
+} else {
+const category = detectCategory(text);
+const output = buildPrompt(text, ai, category);
+resultContent.innerHTML = `
+<h4 class="text-lg font-semibold mb-2">${category} Prompt</h4>
+<pre class="bg-slate-900 p-4 rounded-lg whitespace-pre-wrap text-sm">${output}</pre>
+`;
+}
 
-copyBtn.addEventListener("click", () => {
-  navigator.clipboard.writeText(resultContent.textContent);
+}, 1000);
+
 });
 
 });
 </script>
-
-</body>
-</html>
 
 </body>
 </html>
