@@ -5,6 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Landing Page</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        @keyframes floaty {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-18px); }
+        }
+        .blur-blob {
+            filter: blur(70px);
+            opacity: 0.6;
+            animation: floaty 10s ease-in-out infinite;
+        }
+    </style>
 </head>
 <body class="bg-[#0f172a] text-white">
     <nav class="p-6 bg-opacity-60">
@@ -12,23 +26,30 @@
             <h1 class="text-3xl font-bold">PromptAI</h1>
         </div>
     </nav>
-    <header class="flex items-center justify-center min-h-screen">
-        <div class="text-center">
+    <header class="relative flex items-center justify-center min-h-screen overflow-hidden">
+        <div class="absolute inset-0">
+            <div class="blur-blob absolute top-10 left-10 w-72 h-72 bg-blue-500 rounded-full"></div>
+            <div class="blur-blob absolute bottom-10 right-10 w-80 h-80 bg-purple-600 rounded-full" style="animation-delay: 2s;"></div>
+        </div>
+        <div class="relative text-center px-6">
             <h2 class="text-4xl font-extrabold mb-4">Turn Ideas Into Intelligent Prompts.</h2>
             <p class="text-xl mb-8">Deep AI analysis for text and images.</p>
-            <a href="#" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-2 px-4 rounded-lg">Analyze</a>
+            <a href="#tool" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-2 px-6 rounded-lg transition transform hover:scale-[1.02] hover:opacity-90">Analyze</a>
         </div>
     </header>
-    <main class="container mx-auto p-6">
-        <section class="mb-10">
-            <h3 class="text-2xl font-bold mb-4">Analyze Your Content</h3>
+    <main class="container mx-auto px-6 py-12 space-y-12">
+        <section id="tool" class="space-y-6">
+            <h3 class="text-2xl font-bold">Analyze Your Content</h3>
             <textarea class="w-full h-32 p-4 rounded-lg border border-gray-300 bg-gray-800" placeholder="Enter text here..."></textarea>
-            <input type="file" class="w-full my-4 p-2 rounded-lg border border-gray-300" accept="image/*" />
-            <button class="bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-2 px-4 rounded-lg">Analyze</button>
+            <input type="file" class="w-full p-2 rounded-lg border border-gray-300" accept="image/*" />
+            <button class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-2 px-6 rounded-lg transition transform hover:scale-[1.02] hover:opacity-90">
+                <span class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                Analyze
+            </button>
         </section>
-        <section id="result" class="hidden bg-gray-700 rounded-lg p-4">
+        <section id="result" class="bg-gray-700 rounded-lg p-6">
             <h3 class="text-xl font-bold">Results:</h3>
-            <p id="resultContent" class="mt-2"></p>
+            <p id="resultContent" class="mt-2 text-gray-200">Your AI analysis will appear here.</p>
         </section>
     </main>
 </body>
