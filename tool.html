@@ -8,6 +8,12 @@
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
+html, body {
+  min-height: 100%;
+  background: radial-gradient(circle at top left, #1e293b, #0f172a 60%);
+  background-attachment: fixed;
+}
+
 html { scroll-behavior: smooth; }
 
 @keyframes floaty {
@@ -23,10 +29,10 @@ html { scroll-behavior: smooth; }
 </style>
 </head>
 
-<body class="min-h-screen text-white bg-[radial-gradient(circle_at_top_left,#1e293b,#0f172a_60%)]">
+<body class="min-h-screen text-white">
 
-<!-- BACKGROUND -->
-<div class="absolute inset-0 -z-10 overflow-hidden">
+<!-- BACKGROUND BLOBS -->
+<div class="fixed inset-0 -z-10 overflow-hidden">
   <div class="blur-blob absolute top-10 left-10 w-72 h-72 bg-blue-500 rounded-full"></div>
   <div class="blur-blob absolute bottom-10 right-10 w-80 h-80 bg-purple-600 rounded-full" style="animation-delay:2s;"></div>
 </div>
@@ -45,23 +51,6 @@ html { scroll-behavior: smooth; }
 
 <div class="flex pt-20">
 
-<!-- SIDEBAR -->
-<aside class="hidden md:block w-64 border-r border-white/10 bg-white/5 backdrop-blur-xl min-h-screen p-6">
-  <h2 class="text-sm uppercase tracking-wider text-gray-400 mb-4">Chats</h2>
-  <div class="space-y-3 text-sm">
-    <div class="p-3 rounded-lg bg-slate-800/60 hover:bg-slate-700 cursor-pointer transition">
-      Website Prompt
-    </div>
-    <div class="p-3 rounded-lg bg-slate-800/40 hover:bg-slate-700 cursor-pointer transition">
-      Image Concept
-    </div>
-    <div class="p-3 rounded-lg bg-slate-800/40 hover:bg-slate-700 cursor-pointer transition">
-      Marketing Plan
-    </div>
-  </div>
-</aside>
-
-<!-- TOOL -->
 <section class="flex-1 max-w-4xl mx-auto px-6 py-20 space-y-6">
 
 <h3 class="text-2xl font-bold">Generate Optimized Prompt</h3>
@@ -77,12 +66,9 @@ html { scroll-behavior: smooth; }
 class="w-full h-32 p-6 rounded-2xl bg-slate-800 border border-gray-600 shadow-xl"
 placeholder="Describe what you want to generate..."></textarea>
 
-<input type="file" id="imageUpload"
-class="w-full p-3 rounded-lg bg-slate-800 border border-gray-600 text-sm" />
-
 <label class="flex items-center gap-3 text-sm text-gray-300">
-  <input type="checkbox" id="advancedMode" class="accent-purple-500 w-4 h-4">
-  Enable Advanced Prompt Intelligence
+<input type="checkbox" id="advancedMode" class="accent-purple-500 w-4 h-4">
+Enable Advanced Prompt Intelligence
 </label>
 
 <button id="generateBtn"
@@ -90,28 +76,9 @@ class="bg-gradient-to-r from-blue-500 to-purple-600 py-2 px-6 rounded-lg hover:s
 Generate Prompt
 </button>
 
-<!-- RESULT -->
 <div id="resultBox" class="bg-slate-800 rounded-2xl p-6 shadow-xl hidden">
 <h3 class="text-xl font-bold mb-4">Result</h3>
-
 <div id="resultContent" class="text-gray-300 mb-4"></div>
-
-<button id="copyBtn"
-class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm transition">
-Copy Prompt
-</button>
-
-<button id="variationBtn"
-class="ml-3 bg-purple-700 hover:bg-purple-600 px-4 py-2 rounded-lg text-sm transition hidden">
-Generate Variations
-</button>
-
-<span id="copyStatus" class="ml-3 text-sm text-green-400 hidden">
-Copied!
-</span>
-
-<div id="variationBox" class="mt-6 space-y-4 hidden"></div>
-
 </div>
 
 </section>
@@ -126,79 +93,52 @@ const advancedToggle = document.getElementById("advancedMode");
 const button = document.getElementById("generateBtn");
 const resultBox = document.getElementById("resultBox");
 const resultContent = document.getElementById("resultContent");
-const imageUpload = document.getElementById("imageUpload");
-const copyBtn = document.getElementById("copyBtn");
-const copyStatus = document.getElementById("copyStatus");
-const variationBtn = document.getElementById("variationBtn");
-const variationBox = document.getElementById("variationBox");
 
-let lastInput = "";
-let lastAI = "";
-let lastCategory = "";
-
-/* CATEGORY DETECTION */
+/* CATEGORY */
 const detectCategory = (text) => {
 const t = text.toLowerCase();
 if (t.match(/website|landing|dashboard|saas|ui|ux/)) return "Website";
 if (t.match(/logo|brand|identity|icon/)) return "Logo";
-if (t.match(/t-shirt|tshirt|tee|merch/)) return "T-shirt";
 if (t.match(/code|api|script|bug|javascript|python/)) return "Code";
-if (t.match(/marketing|growth|strategy|sales/)) return "Business";
-if (t.match(/city|character|landscape|portrait|robot|future|futuristic|night|forest|space|cyberpunk|fantasy|realistic|anime|cinematic/))
-return "Image";
+if (t.match(/city|future|futuristic|night|cinematic|fantasy|realistic/)) return "Image";
 return "Writing";
 };
 
 /* ENHANCER */
 const enhancePrompt = (text, category) => {
 if (category === "Image")
-return `${text}, cinematic lighting, depth of field, 8k, ultra detailed`;
+return `${text}, cinematic lighting, ultra detailed, depth of field, 8k`;
 if (category === "Website")
-return `${text}\nConversion focused, strong CTA, responsive design`;
+return `${text}\nConversion focused layout, strong CTA, responsive`;
 if (category === "Code")
 return `${text}\nClean architecture, scalable, well documented`;
-return `${text}\nMake it detailed and professional`;
+return `${text}\nMake it detailed and structured`;
 };
 
-/* MAIN PROMPT BUILDER */
-const buildPrompt = (text, ai, category) => {
-
-  const evaluatePrompt = (text) => {
+/* SCORE SYSTEM (FIXED GLOBAL) */
+const evaluatePrompt = (text) => {
 
 let score = 0;
-
 const wordCount = text.split(/\s+/).length;
+
 if (wordCount > 20) score += 2;
-
-if (text.match(/cinematic|lighting|ultra|detailed|professional|realistic|8k|composition/i))
-score += 2;
-
-if (text.match(/architecture|structure|strategy|implementation|scalable|responsive/i))
-score += 2;
-
-if (text.match(/role|task|deliver|format|objective/i))
-score += 2;
-
-if (text.match(/high|clear|specific|focused|conversion|quality/i))
-score += 2;
+if (text.match(/cinematic|lighting|ultra|detailed|professional|8k/i)) score += 2;
+if (text.match(/architecture|structure|scalable|responsive/i)) score += 2;
+if (text.match(/role|task|deliver|objective/i)) score += 2;
+if (text.match(/clear|specific|focused|conversion/i)) score += 2;
 
 let clarity = wordCount > 25 ? "High" : "Medium";
 let detail = score >= 6 ? "Strong" : "Basic";
+let tip = score >= 8 ? "Excellent prompt structure."
+: score <= 4 ? "Add more detail and constraints."
+: "Consider refining structure.";
 
-let tip = "Consider adding specific constraints or style direction.";
-
-if (score >= 8) tip = "Excellent prompt structure.";
-if (score <= 4) tip = "Add more detail, constraints, and context.";
-
-return {
-score,
-clarity,
-detail,
-tip
+return { score, clarity, detail, tip };
 };
 
-};
-  
+/* PROMPT BUILDER */
+const buildPrompt = (text, ai, category) => {
+
 if (ai === "Midjourney")
 return `${text}, cinematic lighting, ultra detailed, 4k`;
 
@@ -206,7 +146,7 @@ if (ai === "Stable Diffusion")
 return `Positive: ${text}\nNegative: blurry, low quality`;
 
 if (ai === "Claude")
-return `Structured reasoning response for:\n${text}`;
+return `Structured reasoning for:\n${text}`;
 
 if (category === "Image")
 return `ROLE: Visual Designer\nSCENE:\n${text}`;
@@ -217,30 +157,7 @@ return `ROLE: Senior Engineer\nTASK:\n${text}`;
 return `ROLE: Creative Expert\nCONTEXT:\n${text}`;
 };
 
-/* VARIATIONS */
-const buildVariations = (text, ai, category) => {
-
-if (ai === "Midjourney") {
-return [
-`${text}, cyberpunk neon style, rain reflections`,
-`${text}, minimalist architectural render`
-];
-}
-
-if (ai === "GPT") {
-return [
-`Strategic version:\n${text}\nAdd deeper planning structure.`,
-`Concise instruction:\nDirectly generate ${text}`
-];
-}
-
-return [
-`Alternative framing:\n${text}`,
-`Expanded detailed version:\n${text}, fully elaborated`
-];
-};
-
-/* GENERATE */
+/* BUTTON */
 button.addEventListener("click", () => {
 
 const text = input.value.trim();
@@ -250,12 +167,9 @@ let category = detectCategory(text);
 let finalInput = advancedToggle.checked ? enhancePrompt(text, category) : text;
 
 const output = buildPrompt(finalInput, aiSelect.value, category);
-  const analysis = evaluatePrompt(output);
+const analysis = evaluatePrompt(output);
 
 resultBox.classList.remove("hidden");
-variationBtn.classList.remove("hidden");
-variationBox.classList.add("hidden");
-variationBox.innerHTML = "";
 
 resultContent.innerHTML =
 `<h4 class='text-lg font-semibold mb-2'>${category} Prompt</h4>
@@ -265,7 +179,7 @@ resultContent.innerHTML =
 Prompt Quality: ${analysis.score} / 10
 </p>
 <p class="text-xs text-gray-400 mt-1">
-Clarity: ${analysis.clarity} | Detail Level: ${analysis.detail}
+Clarity: ${analysis.clarity} | Detail: ${analysis.detail}
 </p>
 <p class="text-xs text-gray-500 mt-2">
 Tip: ${analysis.tip}
@@ -273,35 +187,6 @@ Tip: ${analysis.tip}
 </div>
 
 <pre class='bg-slate-900 p-4 rounded-lg whitespace-pre-wrap text-sm'>${output}</pre>`;
-
-lastInput = finalInput;
-lastAI = aiSelect.value;
-lastCategory = category;
-});
-
-/* VARIATION BUTTON */
-variationBtn.addEventListener("click", () => {
-
-const vars = buildVariations(lastInput, lastAI, lastCategory);
-
-variationBox.classList.remove("hidden");
-
-variationBox.innerHTML = vars.map((v,i) =>
-`<div class='bg-slate-900 p-4 rounded-lg'>
-<h5 class='font-semibold mb-2'>Variation ${i+1}</h5>
-<pre class='whitespace-pre-wrap text-sm'>${v}</pre>
-</div>`
-).join("");
-
-});
-
-/* COPY */
-copyBtn.addEventListener("click", async () => {
-const textToCopy = resultContent.innerText.trim();
-if (!textToCopy) return;
-await navigator.clipboard.writeText(textToCopy);
-copyStatus.classList.remove("hidden");
-setTimeout(() => copyStatus.classList.add("hidden"), 1200);
 });
 
 });
