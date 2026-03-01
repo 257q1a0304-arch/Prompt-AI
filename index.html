@@ -188,12 +188,31 @@ const scriptCount = (content.match(/<script/gi) || []).length;
 const hasTailwind = content.includes("tailwind");
 const hasHeader = content.includes("<header");
 
-analysis += `HTML Structure Detected\n`;
-analysis += `- Sections: ${sectionCount}\n`;
-analysis += `- Scripts: ${scriptCount}\n`;
-analysis += `- Header Present: ${hasHeader}\n`;
-analysis += `- Tailwind CSS Used: ${hasTailwind}\n`;
+analysis += `HTML Structure Analysis:\n`;
 
+analysis += `- Sections Detected: ${sectionCount}\n`;
+if (sectionCount < 3) {
+analysis += `  → Limited content depth. Consider adding feature, testimonial or CTA sections.\n`;
+} else {
+analysis += `  → Good structural segmentation.\n`;
+}
+
+analysis += `- Script Tags: ${scriptCount}\n`;
+if (scriptCount > 2) {
+analysis += `  → Multiple scripts detected. Review performance and defer loading if needed.\n`;
+}
+
+analysis += `- Header Present: ${hasHeader}\n`;
+if (!hasHeader) {
+analysis += `  → Consider adding a hero/header section for strong first impression.\n`;
+}
+
+analysis += `- Tailwind CSS Used: ${hasTailwind}\n`;
+if (hasTailwind) {
+analysis += `  → Maintain utility-first consistency and avoid inline styling.\n`;
+} else {
+analysis += `  → Consider using a structured styling system for scalability.\n`;
+}
 } else if (file.name.endsWith(".js")) {
 
 const functionCount = (content.match(/function/g) || []).length;
