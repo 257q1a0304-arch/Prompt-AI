@@ -206,10 +206,7 @@ if (file) {
 
 const output = buildPrompt(combinedInput, ai, category);
 
-resultContent.innerHTML = `
-<h4 class='text-lg font-semibold mb-2'>${category} Prompt</h4>
-<pre class='bg-slate-900 p-4 rounded-lg whitespace-pre-wrap text-sm'>${output}</pre>
-`;
+resultContent.innerHTML = `<h4 class='text-lg font-semibold mb-2'>${category} Prompt</h4>\n<pre class='bg-slate-900 p-4 rounded-lg whitespace-pre-wrap text-sm'>${output}</pre>`;
 };
 
 if (file) {
