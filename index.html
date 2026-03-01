@@ -151,30 +151,74 @@ return;
 resultContent.innerHTML = "<p class='text-gray-400'>Analyzing...</p>";
 resultBox.classList.remove("hidden");
 
-setTimeout(() => {
+const processPrompt = (fileAnalysis = "") => {
 
 let combinedInput = "";
 
-if (file) {
-combinedInput += `Reference File: ${file.name}\nUse layout, structure and styling inspiration from this file.\n\n`;
+if (fileAnalysis) {
+combinedInput += `Reference File Analysis:\n${fileAnalysis}\n\n`;
 }
 
 if (text) {
 combinedInput += `User Objective:\n${text}`;
 }
 
-const category = detectCategory(text || file.name);
+const category = detectCategory(text || file?.name || "");
 const output = buildPrompt(combinedInput, ai, category);
 
 resultContent.innerHTML = `
 <h4 class="text-lg font-semibold mb-2">${category} Prompt</h4>
 <pre class="bg-slate-900 p-4 rounded-lg whitespace-pre-wrap text-sm">${output}</pre>
 `;
+};
 
-}, 1000);
+if (file) {
+
+const reader = new FileReader();
+
+reader.onload = function(e) {
+
+const content = e.target.result;
+let analysis = "";
+
+if (file.name.endsWith(".html")) {
+
+const sectionCount = (content.match(/<section/gi) || []).length;
+const scriptCount = (content.match(/<script/gi) || []).length;
+const hasTailwind = content.includes("tailwind");
+const hasHeader = content.includes("<header");
+
+analysis += `HTML Structure Detected\n`;
+analysis += `- Sections: ${sectionCount}\n`;
+analysis += `- Scripts: ${scriptCount}\n`;
+analysis += `- Header Present: ${hasHeader}\n`;
+analysis += `- Tailwind CSS Used: ${hasTailwind}\n`;
+
+} else if (file.name.endsWith(".js")) {
+
+const functionCount = (content.match(/function/g) || []).length;
+analysis += `JavaScript File Detected\n`;
+analysis += `- Functions: ${functionCount}\n`;
+
+} else {
+
+analysis += `File Type: ${file.name}\n`;
+analysis += `Basic file reference used.\n`;
+
+}
+
+processPrompt(analysis);
+};
+
+reader.readAsText(file);
+
+} else {
+
+processPrompt();
+
+}
 
 });
-
 });
 </script>
 
