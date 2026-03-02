@@ -268,7 +268,73 @@ return [
 };
 
 /* GENERATE */
-button.addEventListener("click", () => {
+button.addEventListener("click", async () => {
+
+const text = input.value.trim();
+if (!text) return;
+
+let category = detectCategory(text);
+let finalInput = advancedToggle.checked ? enhancePrompt(text, category) : text;
+
+resultBox.classList.remove("hidden");
+variationBtn.classList.add("hidden");
+variationBox.classList.add("hidden");
+variationBox.innerHTML = "";
+
+resultContent.innerHTML = "Processing... 🚀";
+
+try {
+
+  const response = await fetch("http://localhost:5000/generate", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      prompt: finalInput,
+      category: category,
+      ai: aiSelect.value
+    })
+  });
+
+  const data = await response.json();
+
+  const output = data.output;
+  const analysis = evaluatePrompt(output);
+
+  resultContent.innerHTML =
+  `<h4 class='text-lg font-semibold mb-2'>${category} Prompt</h4>
+  <div class="mb-4 p-4 rounded-lg bg-slate-900 border border-white/10">
+  <p class="text-sm font-semibold text-purple-400">
+  Prompt Quality: ${analysis.score} / 10
+  </p>
+  <p class="text-xs text-gray-400 mt-1">
+  Clarity: ${analysis.clarity} | Detail: ${analysis.detail}
+  </p>
+  <p class="text-xs text-gray-500 mt-2">
+  Tip: ${analysis.tip}
+  </p>
+  </div>
+  <pre class='bg-slate-900 p-4 rounded-lg whitespace-pre-wrap text-sm'>${output}</pre>`;
+
+  chatHistory.unshift({
+    title: category + " - " + new Date().toLocaleTimeString(),
+    content: resultContent.innerHTML,
+    pinned: false
+  });
+
+  saveChats();
+
+  lastInput = finalInput;
+  lastAI = aiSelect.value;
+  lastCategory = category;
+
+} catch (error) {
+
+  resultContent.innerHTML = "Backend connection failed ❌";
+}
+
+});
 
 const text = input.value.trim();
 if (!text) return;
