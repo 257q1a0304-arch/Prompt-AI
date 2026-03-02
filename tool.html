@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+`<!DOCTYPE html>
 <html lang="en" class="h-full">
 <head>
 <meta charset="UTF-8">
@@ -225,6 +225,157 @@ const evaluatePrompt = (text) => {
 
   return { score, clarity, detail };
 };
+  const buildPrompt = (text, ai, category) => {
+
+  if (category === "Image") {
+    return `
+ROLE: Senior Visual Concept Designer
+
+OBJECTIVE:
+Create a highly detailed visual based on: ${text}
+
+CHARACTER / ENVIRONMENT DETAILS:
+- Appearance, outfit, expression
+- Surroundings and environment
+- Mood and atmosphere
+- Background complexity
+
+LIGHTING:
+- Cinematic lighting
+- Dramatic shadows
+- Depth of field
+- Volumetric effects
+
+CAMERA:
+- Dynamic framing
+- Professional composition
+- Wide angle / close-up
+
+RENDER:
+- 8K resolution
+- Ultra realistic
+- High texture detail
+- Professional color grading
+`;
+  }
+
+  if (category === "Website") {
+    return `
+ROLE: Senior UX Strategist & Web Architect
+
+PROJECT OBJECTIVE:
+${text}
+
+DELIVER:
+
+1️⃣ INFORMATION ARCHITECTURE
+- Page structure breakdown
+- Section hierarchy
+- User journey mapping
+
+2️⃣ HERO SECTION
+- Clear headline
+- Supporting subtext
+- Strong CTA
+
+3️⃣ FEATURE BLOCKS
+- Feature explanation
+- Benefits
+- Visual guidance
+
+4️⃣ CONVERSION STRATEGY
+- Primary CTA placement
+- Secondary CTA
+- Trust elements
+
+FORMAT:
+Structured headings + actionable implementation notes.
+`;
+  }
+
+  if (category === "Code") {
+    return `
+ROLE: Senior Software Engineer
+
+TASK:
+${text}
+
+REQUIREMENTS:
+- Clean modular architecture
+- Scalable structure
+- Proper error handling
+- Optimized performance
+
+DELIVER:
+- Complete working code
+- Explanation of logic
+- Comments included
+- Best practices followed
+`;
+  }
+
+  if (category === "App") {
+    return `
+ROLE: Product Architect & Startup Strategist
+
+APP IDEA:
+${text}
+
+DELIVER:
+1️⃣ Core Concept
+2️⃣ Target Audience
+3️⃣ Key Features
+4️⃣ Monetization Model
+5️⃣ Tech Stack Suggestion
+6️⃣ Growth Strategy
+`;
+  }
+
+  if (category === "Study") {
+    return `
+ROLE: Expert Educator
+
+TOPIC:
+${text}
+
+DELIVER:
+- Clear explanation
+- Step-by-step breakdown
+- Real-world examples
+- Important concepts
+- Summary notes
+`;
+  }
+
+  if (category === "Business") {
+    return `
+ROLE: Strategic Business Consultant
+
+OBJECTIVE:
+${text}
+
+DELIVER:
+- Market positioning
+- Revenue model
+- Growth plan
+- Risk assessment
+- Action roadmap
+`;
+  }
+
+  return `
+ROLE: Professional Content Architect
+
+OBJECTIVE:
+${text}
+
+DELIVER:
+- Structured format
+- Clear headings
+- Detailed expansion
+- Professional tone
+`;
+};
 
 const buildVariations = (text, ai, category) => {
   if (ai === "Midjourney")
@@ -249,7 +400,55 @@ const buildVariations = (text, ai, category) => {
    GENERATE (BACKEND)
 ========================= */
 
-button.addEventListener("click", async () => {
+/* =========================
+   GENERATE (FRONTEND ENGINE)
+========================= */
+
+button.addEventListener("click", () => {
+
+  const text = input.value.trim();
+  if (!text) return;
+
+  let category = detectCategory(text);
+  let finalInput = advancedToggle.checked ? enhancePrompt(text, category) : text;
+
+  const output = buildPrompt(finalInput, aiSelect.value, category);
+
+  const analysis = evaluatePrompt(output);
+
+  resultBox.classList.remove("hidden");
+  variationBox.classList.add("hidden");
+
+  analysisBox.classList.remove("hidden");
+  analysisBox.innerHTML =
+  `<div class="p-4 rounded-lg bg-slate-900 border border-white/10">
+  <p class="text-sm font-semibold text-purple-400">
+  Prompt Quality: ${analysis.score} / 10
+  </p>
+  <p class="text-xs text-gray-400 mt-1">
+  Clarity: ${analysis.clarity} | Detail: ${analysis.detail}
+  </p>
+  </div>`;
+
+  resultContent.innerHTML =
+  `<pre class='bg-slate-900 p-4 rounded-lg whitespace-pre-wrap text-sm'>${output}</pre>`;
+
+  lastOutput = output;
+  lastInput = finalInput;
+  lastAI = aiSelect.value;
+  lastCategory = category;
+
+  chatHistory.unshift({
+    title: category + " - " + new Date().toLocaleTimeString(),
+    content: resultContent.innerHTML,
+    analysis: analysisBox.innerHTML,
+    raw: output,
+    pinned: false
+  });
+
+  saveChats();
+
+});
 
   const text = input.value.trim();
   if (!text) return;
