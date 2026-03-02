@@ -110,40 +110,106 @@ const input = document.getElementById("promptInput");
 const aiSelect = document.getElementById("aiSelector");
 const advancedToggle = document.getElementById("advancedMode");
 const button = document.getElementById("generateBtn");
-
 const resultBox = document.getElementById("resultBox");
 const resultContent = document.getElementById("resultContent");
 const analysisBox = document.getElementById("analysisBox");
 const variationBtn = document.getElementById("variationBtn");
 const variationBox = document.getElementById("variationBox");
+const copyBtn = document.getElementById("copyBtn");
+const chatList = document.getElementById("chatList");
 
 let lastOutput = "";
 let lastInput = "";
 let lastAI = "";
 let lastCategory = "";
 
-/* CATEGORY DETECTION */
+/* =========================
+   MEMORY SYSTEM
+========================= */
+
+let chatHistory = JSON.parse(localStorage.getItem("promptAIChats")) || [];
+
+const saveChats = () => {
+  localStorage.setItem("promptAIChats", JSON.stringify(chatHistory));
+  renderSidebar();
+};
+
+const renderSidebar = () => {
+  chatList.innerHTML = "";
+
+  const sorted = [...chatHistory].sort((a,b)=>(b.pinned||0)-(a.pinned||0));
+
+  sorted.forEach((chat,index) => {
+
+    const wrapper = document.createElement("div");
+    wrapper.className =
+    "flex justify-between items-center p-3 rounded-lg bg-white/5 hover:bg-white/10 transition";
+
+    const title = document.createElement("span");
+    title.className = "cursor-pointer text-sm";
+    title.innerText = chat.pinned ? "📌 " + chat.title : chat.title;
+
+    title.onclick = () => {
+      resultBox.classList.remove("hidden");
+      resultContent.innerHTML = chat.content;
+      analysisBox.innerHTML = chat.analysis;
+      analysisBox.classList.remove("hidden");
+      lastOutput = chat.raw;
+    };
+
+    const actions = document.createElement("div");
+    actions.className = "flex gap-2 text-xs";
+
+    const pinBtn = document.createElement("button");
+    pinBtn.innerText = "📌";
+    pinBtn.onclick = (e) => {
+      e.stopPropagation();
+      chat.pinned = !chat.pinned;
+      saveChats();
+    };
+
+    const delBtn = document.createElement("button");
+    delBtn.innerText = "🗑";
+    delBtn.onclick = (e) => {
+      e.stopPropagation();
+      chatHistory = chatHistory.filter(c => c !== chat);
+      saveChats();
+    };
+
+    actions.appendChild(pinBtn);
+    actions.appendChild(delBtn);
+
+    wrapper.appendChild(title);
+    wrapper.appendChild(actions);
+    chatList.appendChild(wrapper);
+  });
+};
+
+renderSidebar();
+
+/* =========================
+   INTELLIGENCE ENGINE
+========================= */
+
 const detectCategory = (text) => {
   const t = text.toLowerCase();
   if (t.match(/website|landing|dashboard|saas|ui|ux/)) return "Website";
   if (t.match(/logo|brand|identity|icon/)) return "Branding";
   if (t.match(/code|api|script|bug|javascript|python/)) return "Code";
-  if (t.match(/city|future|cinematic|fantasy|realistic|lighting/)) return "Image";
+  if (t.match(/city|future|cinematic|fantasy|realistic/)) return "Image";
   return "Writing";
 };
 
-/* ENHANCER */
 const enhancePrompt = (text, category) => {
   if (category === "Image")
-    return `${text}, cinematic lighting, ultra detailed, 8k, depth of field`;
+    return `${text}, cinematic lighting, ultra detailed, 8k`;
   if (category === "Website")
-    return `${text}\nConversion focused layout, strong CTA, responsive design`;
+    return `${text}\nConversion focused layout, responsive`;
   if (category === "Code")
-    return `${text}\nClean architecture, scalable structure, documented`;
-  return `${text}\nMake it detailed, structured and professional`;
+    return `${text}\nClean architecture, scalable`;
+  return `${text}\nMake it structured and professional`;
 };
 
-/* SCORING */
 const evaluatePrompt = (text) => {
   let score = 0;
   const words = text.split(/\s+/).length;
@@ -151,8 +217,8 @@ const evaluatePrompt = (text) => {
   if (words > 20) score += 2;
   if (text.match(/cinematic|detailed|professional|8k/i)) score += 2;
   if (text.match(/structure|architecture|scalable/i)) score += 2;
-  if (text.match(/role|task|objective|deliver/i)) score += 2;
-  if (text.match(/clear|focused|specific/i)) score += 2;
+  if (text.match(/role|task|objective/i)) score += 2;
+  if (text.match(/clear|specific|focused/i)) score += 2;
 
   const clarity = words > 25 ? "High" : "Medium";
   const detail = score >= 6 ? "Strong" : "Basic";
@@ -160,52 +226,30 @@ const evaluatePrompt = (text) => {
   return { score, clarity, detail };
 };
 
-/* PROMPT BUILDER */
-const buildPrompt = (text, ai, category) => {
-
-  if (ai === "Midjourney")
-    return `${text}, cinematic lighting, ultra detailed, 4k`;
-
-  if (ai === "Stable Diffusion")
-    return `Positive: ${text}\nNegative: blurry, low quality`;
-
-  if (ai === "Claude")
-    return `Structured reasoning for:\n${text}`;
-
-  if (category === "Image")
-    return `ROLE: Visual Designer\nSCENE:\n${text}`;
-
-  if (category === "Code")
-    return `ROLE: Senior Engineer\nTASK:\n${text}`;
-
-  return `ROLE: Creative Expert\nCONTEXT:\n${text}`;
-};
-
-/* VARIATIONS */
 const buildVariations = (text, ai, category) => {
-
-  if (ai === "Midjourney") {
+  if (ai === "Midjourney")
     return [
       `${text}, cyberpunk neon reflections`,
-      `${text}, minimalist architecture style`
+      `${text}, soft cinematic lighting`
     ];
-  }
 
-  if (category === "Image") {
+  if (category === "Image")
     return [
       `${text}, dramatic sunset lighting`,
       `${text}, ultra realistic volumetric lighting`
     ];
-  }
 
   return [
     `Alternative version:\n${text}`,
-    `Expanded professional version:\n${text}\nAdd more depth.`
+    `Expanded version:\n${text}\nAdd more depth and clarity`
   ];
 };
 
-/* GENERATE BUTTON */
-button.addEventListener("click", () => {
+/* =========================
+   GENERATE (BACKEND)
+========================= */
+
+button.addEventListener("click", async () => {
 
   const text = input.value.trim();
   if (!text) return;
@@ -213,34 +257,75 @@ button.addEventListener("click", () => {
   let category = detectCategory(text);
   let finalInput = advancedToggle.checked ? enhancePrompt(text, category) : text;
 
-  const output = buildPrompt(finalInput, aiSelect.value, category);
-  const analysis = evaluatePrompt(output);
-
   resultBox.classList.remove("hidden");
   variationBox.classList.add("hidden");
+  resultContent.innerHTML = "Processing... 🚀";
 
-  analysisBox.classList.remove("hidden");
-  analysisBox.innerHTML =
-  `<div class="p-4 rounded-lg bg-slate-900 border border-white/10">
-  <p class="text-sm font-semibold text-purple-400">
-  Prompt Quality: ${analysis.score} / 10
-  </p>
-  <p class="text-xs text-gray-400 mt-1">
-  Clarity: ${analysis.clarity} | Detail: ${analysis.detail}
-  </p>
-  </div>`;
+  try {
 
-  resultContent.innerHTML =
-  `<pre class='bg-slate-900 p-4 rounded-lg whitespace-pre-wrap text-sm'>${output}</pre>`;
+    const response = await fetch("http://localhost:5000/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt: finalInput,
+        category: category,
+        ai: aiSelect.value
+      })
+    });
 
-  lastOutput = output;
-  lastInput = finalInput;
-  lastAI = aiSelect.value;
-  lastCategory = category;
+    const data = await response.json();
+    const output = data.output;
+
+    const analysis = evaluatePrompt(output);
+
+    analysisBox.classList.remove("hidden");
+    analysisBox.innerHTML =
+    `<div class="p-4 rounded-lg bg-slate-900 border border-white/10">
+    <p class="text-sm font-semibold text-purple-400">
+    Prompt Quality: ${analysis.score} / 10
+    </p>
+    <p class="text-xs text-gray-400 mt-1">
+    Clarity: ${analysis.clarity} | Detail: ${analysis.detail}
+    </p>
+    </div>`;
+
+    resultContent.innerHTML =
+    `<pre class='bg-slate-900 p-4 rounded-lg whitespace-pre-wrap text-sm'>${output}</pre>`;
+
+    lastOutput = output;
+    lastInput = finalInput;
+    lastAI = aiSelect.value;
+    lastCategory = category;
+
+    chatHistory.unshift({
+      title: category + " - " + new Date().toLocaleTimeString(),
+      content: resultContent.innerHTML,
+      analysis: analysisBox.innerHTML,
+      raw: output,
+      pinned: false
+    });
+
+    saveChats();
+
+  } catch {
+    resultContent.innerHTML = "Backend connection failed ❌";
+  }
 
 });
 
-/* VARIATION BUTTON */
+/* =========================
+   COPY
+========================= */
+
+copyBtn.addEventListener("click", () => {
+  if (!lastOutput) return;
+  navigator.clipboard.writeText(lastOutput);
+});
+
+/* =========================
+   VARIATIONS
+========================= */
+
 variationBtn.addEventListener("click", () => {
 
   if (!lastOutput) return;
@@ -249,7 +334,7 @@ variationBtn.addEventListener("click", () => {
 
   variationBox.classList.remove("hidden");
 
-  variationBox.innerHTML = vars.map((v,i) =>
+  variationBox.innerHTML = vars.map((v,i)=>
   `<div class='bg-slate-900 p-4 rounded-lg'>
   <h5 class='font-semibold mb-2'>Variation ${i+1}</h5>
   <pre class='whitespace-pre-wrap text-sm'>${v}</pre>
